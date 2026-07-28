@@ -106,7 +106,7 @@
     </select>
 
     <label>📝 備註說明：</label>
-    <input type="text" id="recordNote" placeholder="如: 賒帳、現金結清">
+    <input type="text" id="recordNote" placeholder="如:  ">
 
     <button type="button" onclick="submitRecord()" class="btn-submit">🚀 送出這筆記帳</button>
   </div>
@@ -207,7 +207,7 @@
       <h3 style="margin-top:0; color:#2e7d32;">🏬 新增客戶/廠商</h3>
       <input type="text" id="newPartnerName" placeholder="名稱 (如: 吉利資材行)">
       <select id="newPartnerCategory" style="margin-top:10px;">
-        <option value="資材商">資材商/藥局</option>
+        <option value="資材商">資材商/農藥</option>
         <option value="水果盤商">水果盤商/行口</option>
         <option value="設備廠商">設備/機械商</option>
         <option value="其他">其他合作夥伴</option>
@@ -242,7 +242,7 @@
     let allWorkLogsCache = [];
 
     const categoryOptions = {
-      "支出": ["肥料費", "農藥/資材費", "包材費", "種苗/資材", "設備維修/油錢", "雜項"],
+      "支出": ["肥料費", "農藥/資材費", "包材費", "種苗", "設備維修/油錢", "雜項"],
       "收入": ["果實銷售", "政府補助/獎勵金", "其他收入"]
     };
 
