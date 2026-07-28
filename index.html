@@ -268,40 +268,39 @@
     }
 
     function loadInitData() {
-      fetch(`${GAS_API_URL}?action=getInitData`)
-        .then(res => res.json())
-        .then(data => {
-          workerListCache = data.workers || [];
-          partnerListCache = data.partners || [];
-          fieldListCache = data.fields || [];
-          allRecordsCache = data.allRecords || [];
-          allWorkLogsCache = data.allWorkLogs || [];
+  fetch(`${GAS_API_URL}?action=getInitData`)
+    .then(res => res.json())
+    .then(data => {
+      workerListCache = data.workers || [];
+      partnerListCache = data.partners || [];
+      fieldListCache = data.fields || [];
+      allRecordsCache = data.allRecords || [];
+      allWorkLogsCache = data.allWorkLogs || [];
 
-          // 田區選單
-          const recordFieldSelect = document.getElementById('recordField');
-          const workLogFieldSelect = document.getElementById('workLogField');
-          let fieldHtml = '<option value="通用田區">通用田區</option>';
-          fieldListCache.forEach(f => fieldHtml += `<option value="${f}">${f}</option>`);
-          recordFieldSelect.innerHTML = fieldHtml;
-          workLogFieldSelect.innerHTML = fieldHtml;
+      // 1. 田區選單 (先清空再重新組裝)
+      const recordFieldSelect = document.getElementById('recordField');
+      const workLogFieldSelect = document.getElementById('workLogField');
+      let fieldHtml = '<option value="通用田區">通用田區</option>';
+      fieldListCache.forEach(f => fieldHtml += `<option value="${f}">${f}</option>`);
+      recordFieldSelect.innerHTML = fieldHtml;
+      workLogFieldSelect.innerHTML = fieldHtml;
 
-          // 工人選單
-          const workerSelect = document.getElementById('workLogWorker');
-          workerSelect.innerHTML = '<option value="">-- 請選擇工人 --</option>';
-          workerListCache.forEach(w => workerSelect.innerHTML += `<option value="${w.name}">${w.name}</option>`);
+      // 2. 工人選單 (先清空再重新組裝)
+      const workerSelect = document.getElementById('workLogWorker');
+      workerSelect.innerHTML = '<option value="">-- 請選擇工人 --</option>';
+      workerListCache.forEach(w => workerSelect.innerHTML += `<option value="${w.name}">${w.name}</option>`);
 
-          // 廠商選單 (記帳)
-          const partnerSelect = document.getElementById('recordPartner');
-          partnerSelect.innerHTML = '<option value="">-- 請選擇客戶/廠商 (可不選) --</option>';
-          partnerListCache.forEach(p => partnerSelect.innerHTML += `<option value="${p.name}">${p.name} [${p.category}]</option>`);
+      // 3. 廠商選單 (記帳) - 🌟 修正重點：每次先清空，就不會疊加重複了！
+      const partnerSelect = document.getElementById('recordPartner');
+      partnerSelect.innerHTML = '<option value="">-- 請選擇客戶/廠商 (可不選) --</option>';
+      partnerListCache.forEach(p => partnerSelect.innerHTML += `<option value="${p.name}">${p.name} [${p.category}]</option>`);
 
-          // 廠商選單 (對帳)
-          const queryPartnerSelect = document.getElementById('queryPartnerSelect');
-          queryPartnerSelect.innerHTML = '<option value="">-- 請選擇廠商 --</option>';
-          partnerListCache.forEach(p => queryPartnerSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`);
-        });
-    }
-
+      // 4. 廠商選單 (對帳) - 🌟 修正重點：每次先清空
+      const queryPartnerSelect = document.getElementById('queryPartnerSelect');
+      queryPartnerSelect.innerHTML = '<option value="">-- 請選擇廠商 --</option>';
+      partnerListCache.forEach(p => queryPartnerSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`);
+    });
+}
     function switchTab(tabId) {
       ['tab1', 'tab2', 'tab3', 'tab4'].forEach(id => document.getElementById(id).style.display = 'none');
       ['btnTab1', 'btnTab2', 'btnTab3', 'btnTab4'].forEach(id => document.getElementById(id).classList.remove('active'));
