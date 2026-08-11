@@ -14,11 +14,14 @@
     
     .card { background: #fff; padding: 18px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin: 12px; }
     label { font-weight: bold; margin-top: 14px; display: block; color: #1b5e20; font-size: 15px; }
-    select, input[type="date"], input[type="month"], input[type="number"], input[type="text"] { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 2px solid #b0bec5; font-size: 16px; background: #fff; box-sizing: border-box; }
+    select, input[type="date"], input[type="number"], input[type="text"] { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 2px solid #b0bec5; font-size: 16px; background: #fff; box-sizing: border-box; }
     
     .btn-submit { background: #2e7d32; color: #fff; border: none; font-weight: bold; margin-top: 20px; font-size: 17px; padding: 12px; border-radius: 8px; width: 100%; box-shadow: 0 4px 8px rgba(46,125,50,0.3); cursor: pointer; }
     .btn-add-modal { background: none; border: none; color: #2e7d32; font-weight: bold; font-size: 14px; cursor: pointer; padding: 0; }
     
+    .filter-btn { padding: 8px 12px; border: 1px solid #2e7d32; border-radius: 20px; background: #fff; color: #2e7d32; font-weight: bold; cursor: pointer; font-size: 13px; }
+    .filter-btn.active { background: #2e7d32; color: #fff; }
+
     .list-item-card { border-bottom: 1px solid #eee; padding: 10px 0; font-size: 14px; }
     .list-item-card:last-child { border-bottom: none; }
     
@@ -29,18 +32,16 @@
 </head>
 <body>
 
-  <!-- 頂端列 -->
   <div class="header-bar">🍻 喝啦小記帳 🍻</div>
 
-  <!-- 導覽頁籤 -->
   <div class="nav-tabs">
     <button id="btnTab1" class="tab-btn active" onclick="switchTab('tab1')">✍️ 每日記帳</button>
     <button id="btnTab2" class="tab-btn" onclick="switchTab('tab2')">⏱️ 工時點工</button>
     <button id="btnTab3" class="tab-btn" onclick="switchTab('tab3')">🔍 廠商對帳</button>
-    <button id="btnTab4" class="tab-btn" onclick="switchTab('tab4')">📊 統計月報</button>
+    <button id="btnTab4" class="tab-btn" onclick="switchTab('tab4')">📊 統計報表</button>
   </div>
 
-  <!-- 頁面 1：每日記帳表單 -->
+  <!-- 頁面 1：每日記帳 -->
   <div id="tab1" class="card">
     <h3 style="margin-top:0; color:#2e7d32;">💵 記錄收支明細</h3>
     
@@ -48,18 +49,21 @@
     <input type="date" id="recordDate">
 
     <label>2. ⇄ 交易類型：</label>
-    <select id="recordType" onchange="updateCategories()">
+    <select id="recordType" onchange="onRecordTypeChange()">
       <option value="支出">🔴 支出</option>
       <option value="收入">🟢 收入</option>
     </select>
 
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-      <label style="margin-top:0;">3. 🏬 客戶/廠商：</label>
-      <button type="button" class="btn-add-modal" onclick="openModal('modalAddPartner')">➕ 新增廠商</button>
+    <!-- 🌟 選「收入」時才出現客戶欄位 -->
+    <div id="partnerContainer" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+        <label style="margin-top:0;">3. 🏬 客戶名稱：</label>
+        <button type="button" class="btn-add-modal" onclick="openModal('modalAddPartner')">➕ 新增客戶</button>
+      </div>
+      <select id="recordPartner">
+        <option value="">-- 請選擇客戶 (可不選) --</option>
+      </select>
     </div>
-    <select id="recordPartner">
-      <option value="">-- 請選擇客戶/廠商 (可不選) --</option>
-    </select>
 
     <label>4. 🏷️ 收支項目：</label>
     <select id="recordCategory"></select>
@@ -67,7 +71,7 @@
     <label>5. 📦 品項名稱：</label>
     <input type="text" id="recordItemName" placeholder="如: 黑牛牌肥料、小番茄">
 
-    <!-- 數量 > 單位 > 單價 -->
+    <!-- 順序：數量 > 單位 > 單價 -->
     <div style="display: flex; gap: 8px; margin-top: 10px;">
       <div style="flex: 1.5;">
         <label style="margin-top:0;">🔢 數量：</label>
@@ -92,7 +96,6 @@
       </div>
     </div>
 
-    <!-- 即時總金額 -->
     <div style="background: #e8f5e9; padding: 10px; border-radius: 8px; margin-top: 12px; text-align: right; font-weight: bold; color: #2e7d32; font-size: 17px;">
       💰 總金額：$<span id="showRecordTotal">0</span> 元
     </div>
@@ -106,12 +109,12 @@
     </select>
 
     <label>📝 備註說明：</label>
-    <input type="text" id="recordNote" placeholder="如:  ">
+    <input type="text" id="recordNote" placeholder="如: 賒帳、現金結清">
 
     <button type="button" onclick="submitRecord()" class="btn-submit">🚀 送出這筆記帳</button>
   </div>
 
-  <!-- 頁面 2：工時點工表單 -->
+  <!-- 頁面 2：工時點工 -->
   <div id="tab2" class="card" style="display:none;">
     <h3 style="margin-top:0; color:#1565c0;">⏱️ 記錄工人出工</h3>
     
@@ -145,7 +148,6 @@
       </div>
     </div>
 
-    <!-- 即時工資 -->
     <div style="background: #e3f2fd; padding: 10px; border-radius: 8px; margin-top: 12px; text-align: right; font-weight: bold; color: #1565c0; font-size: 17px;">
       💰 當日工資：$<span id="showDailyWage">0</span> 元
     </div>
@@ -153,39 +155,72 @@
     <button type="button" onclick="submitWorkLog()" class="btn-submit" style="background: #1565c0;">🚀 送出點工紀錄</button>
   </div>
 
-  <!-- 頁面 3：廠商對帳 -->
+  <!-- 頁面 3：廠商對帳 (含損益與田區篩選) -->
   <div id="tab3" class="card" style="display:none;">
-    <h3 style="margin-top:0; color:#2e7d32;">🔍 客戶與廠商對帳查詢</h3>
+    <h3 style="margin-top:0; color:#2e7d32;">🔍 對帳查詢</h3>
     
     <label>🏢 請選擇客戶/廠商：</label>
     <select id="queryPartnerSelect" onchange="queryPartnerData()">
       <option value="">-- 請選擇 --</option>
     </select>
 
-    <div id="partnerSummaryBox" style="display:none; background: #e8f5e9; padding: 12px; border-radius: 8px; margin-top: 14px; font-weight: bold; color: #1b5e20;">
+    <label>🌱 篩選工作田區 (可不選)：</label>
+    <select id="queryPartnerField" onchange="queryPartnerData()">
+      <option value="">-- 所有田區 --</option>
+    </select>
+
+    <div id="partnerSummaryBox" style="display:none; background: #f8f9fa; padding: 12px; border-radius: 8px; margin-top: 14px; border: 1px solid #e0e0e0;">
       <div>累積交易筆數：<span id="partnerTotalCount">0</span> 筆</div>
-      <div style="font-size:18px; margin-top:4px;">累積交易總額：$<span id="partnerTotalAmount">0</span> 元</div>
+      <div style="margin-top: 6px; font-weight: bold;">🟢 收入總計：<span style="color:#2e7d32;">+$<span id="partnerIncomeSum">0</span></span> 元</div>
+      <div style="margin-top: 4px; font-weight: bold;">🔴 支出總計：<span style="color:#c62828;">-$<span id="partnerExpenseSum">0</span></span> 元</div>
+      <hr style="border:none; border-top:1px dashed #ccc; margin:8px 0;">
+      <div style="font-size:18px; font-weight:bold;">淨額總計：<span id="partnerNetTotal">$0</span> 元</div>
     </div>
 
     <div id="partnerRecordsList" style="margin-top: 15px;">
-      <p style="text-align:center; color:#888;">請選擇上方廠商開始對帳</p>
+      <p style="text-align:center; color:#888;">請選擇上方對帳對象</p>
     </div>
   </div>
   
-  <!-- 頁面 4：統計月報 -->
+  <!-- 頁面 4：統計報表 (日期區間 + 明細按鈕) -->
   <div id="tab4" class="card" style="display:none;">
-    <h3 style="margin-top:0; color:#2e7d32;">📊 統計月報表</h3>
+    <h3 style="margin-top:0; color:#2e7d32;">📊 統計報表與明細</h3>
     
-    <label>📅 請選擇查詢月份：</label>
-    <input type="month" id="queryMonthInput" onchange="queryMonthlyReport()">
+    <div style="display: flex; gap: 8px;">
+      <div style="flex: 1;">
+        <label style="margin-top:0;">📅 開始日期：</label>
+        <input type="date" id="reportStartDate" onchange="queryMonthlyReport()">
+      </div>
+      <div style="flex: 1;">
+        <label style="margin-top:0;">📅 結束日期：</label>
+        <input type="date" id="reportEndDate" onchange="queryMonthlyReport()">
+      </div>
+    </div>
+
+    <label>🌱 篩選工作田區 (可不選)：</label>
+    <select id="reportFieldSelect" onchange="queryMonthlyReport()">
+      <option value="">-- 所有田區 --</option>
+    </select>
 
     <div id="monthlySummaryBox" style="background: #f9f9f9; padding: 12px; border-radius: 8px; margin-top: 14px; border: 1px solid #e0e0e0;">
-      <div style="color: #2e7d32; font-weight: bold;">🟢 當月總收入：$<span id="monthIncome">0</span> 元</div>
-      <div style="color: #c62828; font-weight: bold; margin-top:4px;">🔴 當月資材支出：$<span id="monthExpense">0</span> 元</div>
-      <div style="color: #1565c0; font-weight: bold; margin-top:4px;">🔵 當月點人工資：$<span id="monthWages">0</span> 元</div>
+      <div style="color: #2e7d32; font-weight: bold;">🟢 期間總收入：$<span id="monthIncome">0</span> 元</div>
+      <div style="color: #c62828; font-weight: bold; margin-top:4px;">🔴 期間資材支出：$<span id="monthExpense">0</span> 元</div>
+      <div style="color: #1565c0; font-weight: bold; margin-top:4px;">🔵 期間點人工資：$<span id="monthWages">0</span> 元</div>
       <hr style="border:none; border-top:1px dashed #ccc; margin:8px 0;">
-      <div style="font-size:18px; font-weight:bold; color: #1b5e20;">💵 當月預估淨利：$<span id="monthNetProfit">0</span> 元</div>
+      <div style="font-size:18px; font-weight:bold; color: #1b5e20;">💵 期間預估淨利：$<span id="monthNetProfit">0</span> 元</div>
     </div>
+
+    <div style="margin-top: 18px;">
+      <label style="margin-top:0; margin-bottom: 8px;">🔍 查看該區間明細：</label>
+      <div style="display: flex; gap: 6px; overflow-x: auto;">
+        <button class="filter-btn active" id="btnDetailALL" onclick="filterReportDetails('ALL')">全部明細</button>
+        <button class="filter-btn" id="btnDetailIncome" onclick="filterReportDetails('收入')">🟢 收入明細</button>
+        <button class="filter-btn" id="btnDetailExpense" onclick="filterReportDetails('支出')">🔴 支出明細</button>
+        <button class="filter-btn" id="btnDetailWage" onclick="filterReportDetails('工資')">🔵 工資明細</button>
+      </div>
+    </div>
+
+    <div id="reportDetailList" style="margin-top: 15px;"></div>
   </div>
 
   <!-- 彈窗 1：新增工人 -->
@@ -201,14 +236,14 @@
     </div>
   </div>
 
-  <!-- 彈窗 2：新增廠商 -->
+  <!-- 彈窗 2：新增客戶 -->
   <div id="modalAddPartner" class="modal-overlay">
     <div class="modal-box">
       <h3 style="margin-top:0; color:#2e7d32;">🏬 新增客戶/廠商</h3>
-      <input type="text" id="newPartnerName" placeholder="名稱 (如: 吉利資材行)">
+      <input type="text" id="newPartnerName" placeholder="名稱 (如: 然婕軒合作社)">
       <select id="newPartnerCategory" style="margin-top:10px;">
-        <option value="資材商">資材商/農藥</option>
-        <option value="水果盤商">水果盤商/行口</option>
+        <option value="水果盤商">水果盤商/客戶</option>
+        <option value="資材商">資材商/藥局</option>
         <option value="設備廠商">設備/機械商</option>
         <option value="其他">其他合作夥伴</option>
       </select>
@@ -232,75 +267,95 @@
   </div>
 
   <script>
-    // ⚠️ 務必替換成您最新的 GAS 部署網址！
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyd8t8QgF37UptoL06_sEY9CmJc5CbrynrWimh2Oa9RKklu9gf44xtXVvSIi_C5C12KTQ/exec";
+    // ⚠️ 務必替換成您的 GAS 部署網址！
+    const GAS_API_URL = "您的_GAS_WEB_APP_URL";
 
     let workerListCache = [];
     let partnerListCache = [];
     let fieldListCache = [];
     let allRecordsCache = [];
     let allWorkLogsCache = [];
+    let currentDetailFilter = 'ALL';
 
     const categoryOptions = {
-      "支出": ["肥料費", "農藥/資材費", "包材費", "種苗", "設備維修/油錢", "雜項"],
+      "支出": ["肥料費", "農藥/資材費", "包材費", "種苗/資材", "設備維修/油錢", "雜項"],
       "收入": ["果實銷售", "政府補助/獎勵金", "其他收入"]
     };
 
     window.onload = function() {
       const today = new Date().toISOString().split('T')[0];
-      const thisMonth = today.substring(0, 7);
-      
+      const firstDayOfMonth = today.substring(0, 8) + '01';
+
       document.getElementById('recordDate').value = today;
       document.getElementById('workLogDate').value = today;
-      document.getElementById('queryMonthInput').value = thisMonth;
-      
-      updateCategories();
+      document.getElementById('reportStartDate').value = firstDayOfMonth;
+      document.getElementById('reportEndDate').value = today;
+
+      onRecordTypeChange();
       loadInitData();
     };
 
-    function updateCategories() {
+    function onRecordTypeChange() {
       const type = document.getElementById('recordType').value;
+      const partnerBox = document.getElementById('partnerContainer');
       const categorySelect = document.getElementById('recordCategory');
+
       categorySelect.innerHTML = '';
       categoryOptions[type].forEach(cat => {
         categorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
       });
+
+      if (type === '收入') {
+        partnerBox.style.display = 'block';
+      } else {
+        partnerBox.style.display = 'none';
+        document.getElementById('recordPartner').value = '';
+      }
     }
 
+    // 🌟 清空選單，解決選項重複出現問題
     function loadInitData() {
-  fetch(`${GAS_API_URL}?action=getInitData`)
-    .then(res => res.json())
-    .then(data => {
-      workerListCache = data.workers || [];
-      partnerListCache = data.partners || [];
-      fieldListCache = data.fields || [];
-      allRecordsCache = data.allRecords || [];
-      allWorkLogsCache = data.allWorkLogs || [];
+      fetch(`${GAS_API_URL}?action=getInitData`)
+        .then(res => res.json())
+        .then(data => {
+          workerListCache = data.workers || [];
+          partnerListCache = data.partners || [];
+          fieldListCache = data.fields || [];
+          allRecordsCache = data.allRecords || [];
+          allWorkLogsCache = data.allWorkLogs || [];
 
-      // 1. 田區選單 (先清空再重新組裝)
-      const recordFieldSelect = document.getElementById('recordField');
-      const workLogFieldSelect = document.getElementById('workLogField');
-      let fieldHtml = '<option value="通用田區">通用田區</option>';
-      fieldListCache.forEach(f => fieldHtml += `<option value="${f}">${f}</option>`);
-      recordFieldSelect.innerHTML = fieldHtml;
-      workLogFieldSelect.innerHTML = fieldHtml;
+          // 1. 田區選單
+          let fieldOptionHtml = '<option value="">-- 所有田區 --</option>';
+          let fieldFormHtml = '<option value="通用田區">通用田區</option>';
+          fieldListCache.forEach(f => {
+            fieldOptionHtml += `<option value="${f}">${f}</option>`;
+            fieldFormHtml += `<option value="${f}">${f}</option>`;
+          });
 
-      // 2. 工人選單 (先清空再重新組裝)
-      const workerSelect = document.getElementById('workLogWorker');
-      workerSelect.innerHTML = '<option value="">-- 請選擇工人 --</option>';
-      workerListCache.forEach(w => workerSelect.innerHTML += `<option value="${w.name}">${w.name}</option>`);
+          document.getElementById('recordField').innerHTML = fieldFormHtml;
+          document.getElementById('workLogField').innerHTML = fieldFormHtml;
+          document.getElementById('queryPartnerField').innerHTML = fieldOptionHtml;
+          document.getElementById('reportFieldSelect').innerHTML = fieldOptionHtml;
 
-      // 3. 廠商選單 (記帳) - 🌟 修正重點：每次先清空，就不會疊加重複了！
-      const partnerSelect = document.getElementById('recordPartner');
-      partnerSelect.innerHTML = '<option value="">-- 請選擇客戶/廠商 (可不選) --</option>';
-      partnerListCache.forEach(p => partnerSelect.innerHTML += `<option value="${p.name}">${p.name} [${p.category}]</option>`);
+          // 2. 工人選單
+          const workerSelect = document.getElementById('workLogWorker');
+          workerSelect.innerHTML = '<option value="">-- 請選擇工人 --</option>';
+          workerListCache.forEach(w => workerSelect.innerHTML += `<option value="${w.name}">${w.name}</option>`);
 
-      // 4. 廠商選單 (對帳) - 🌟 修正重點：每次先清空
-      const queryPartnerSelect = document.getElementById('queryPartnerSelect');
-      queryPartnerSelect.innerHTML = '<option value="">-- 請選擇廠商 --</option>';
-      partnerListCache.forEach(p => queryPartnerSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`);
-    });
-}
+          // 3. 客戶/廠商選單
+          const partnerSelect = document.getElementById('recordPartner');
+          partnerSelect.innerHTML = '<option value="">-- 請選擇客戶 (可不選) --</option>';
+          partnerListCache.forEach(p => partnerSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`);
+
+          const queryPartnerSelect = document.getElementById('queryPartnerSelect');
+          queryPartnerSelect.innerHTML = '<option value="">-- 請選擇客戶/廠商 --</option>';
+          partnerListCache.forEach(p => queryPartnerSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`);
+
+          if (document.getElementById('tab3').style.display !== 'none') queryPartnerData();
+          if (document.getElementById('tab4').style.display !== 'none') queryMonthlyReport();
+        });
+    }
+
     function switchTab(tabId) {
       ['tab1', 'tab2', 'tab3', 'tab4'].forEach(id => document.getElementById(id).style.display = 'none');
       ['btnTab1', 'btnTab2', 'btnTab3', 'btnTab4'].forEach(id => document.getElementById(id).classList.remove('active'));
@@ -308,6 +363,7 @@
       document.getElementById(tabId).style.display = 'block';
       document.getElementById('btn' + tabId.charAt(0).toUpperCase() + tabId.slice(1)).classList.add('active');
 
+      if (tabId === 'tab3') queryPartnerData();
       if (tabId === 'tab4') queryMonthlyReport();
     }
 
@@ -334,53 +390,89 @@
 
     function queryPartnerData() {
       const targetPartner = document.getElementById('queryPartnerSelect').value;
+      const targetField = document.getElementById('queryPartnerField').value;
       const summaryBox = document.getElementById('partnerSummaryBox');
       const listDiv = document.getElementById('partnerRecordsList');
 
       if (!targetPartner) {
         summaryBox.style.display = 'none';
-        listDiv.innerHTML = '<p style="text-align:center; color:#888;">請選擇上方廠商開始對帳</p>';
+        listDiv.innerHTML = '<p style="text-align:center; color:#888;">請選擇上方對帳對象</p>';
         return;
       }
 
-      const filtered = allRecordsCache.filter(r => r.partner === targetPartner);
-      let totalSum = 0;
+      let filtered = allRecordsCache.filter(r => String(r.partner).trim() === String(targetPartner).trim());
+      if (targetField) {
+        filtered = filtered.filter(r => String(r.field).trim() === String(targetField).trim());
+      }
+
+      let incomeSum = 0;
+      let expenseSum = 0;
       let html = '';
 
       filtered.forEach(r => {
-        totalSum += (parseFloat(r.totalAmount) || 0);
-        html += `<div class="list-item-card">
-          <div style="font-size:12px; color:#777;">📅 ${r.date} | ${r.type} | 🌱 ${r.field}</div>
-          <div style="font-weight:bold; font-size:15px; margin:2px 0;">${r.category} - ${r.itemName || '一般品項'} (${r.qty} ${r.unit} × $${r.price})</div>
-          <div style="color:#2e7d32; font-weight:bold;">總計：$${Number(r.totalAmount).toLocaleString()} 元</div>
-          ${r.note ? `<div style="font-size:12px; color:#555;">備註：${r.note}</div>` : ''}
-        </div>`;
+        const amt = parseFloat(r.totalAmount) || 0;
+        if (r.type === '收入') {
+          incomeSum += amt;
+          html += `<div class="list-item-card">
+            <div style="font-size:12px; color:#777;">📅 ${r.date} | 🌱 ${r.field}</div>
+            <div style="font-weight:bold; font-size:15px; margin:2px 0;">${r.category} - ${r.itemName || '果實銷售'} (${r.qty} ${r.unit} × $${r.price})</div>
+            <div style="color:#2e7d32; font-weight:bold;">🟢 收入：+$${amt.toLocaleString()} 元</div>
+            ${r.note ? `<div style="font-size:12px; color:#555;">備註：${r.note}</div>` : ''}
+          </div>`;
+        } else {
+          expenseSum += amt;
+          html += `<div class="list-item-card">
+            <div style="font-size:12px; color:#777;">📅 ${r.date} | 🌱 ${r.field}</div>
+            <div style="font-weight:bold; font-size:15px; margin:2px 0;">${r.category} - ${r.itemName || '一般資材'} (${r.qty} ${r.unit} × $${r.price})</div>
+            <div style="color:#c62828; font-weight:bold;">🔴 支出：-$${amt.toLocaleString()} 元</div>
+            ${r.note ? `<div style="font-size:12px; color:#555;">備註：${r.note}</div>` : ''}
+          </div>`;
+        }
       });
 
-      document.getElementById('partnerTotalCount').innerText = filtered.length;
-      document.getElementById('partnerTotalAmount').innerText = totalSum.toLocaleString();
-      summaryBox.style.display = 'block';
+      const netTotal = incomeSum - expenseSum;
 
-      listDiv.innerHTML = filtered.length > 0 ? html : '<p style="text-align:center; color:#888;">尚無與該廠商的交易紀錄</p>';
+      document.getElementById('partnerTotalCount').innerText = filtered.length;
+      document.getElementById('partnerIncomeSum').innerText = incomeSum.toLocaleString();
+      document.getElementById('partnerExpenseSum').innerText = expenseSum.toLocaleString();
+      
+      const netElem = document.getElementById('partnerNetTotal');
+      if (netTotal >= 0) {
+        netElem.style.color = '#2e7d32';
+        netElem.innerText = '+$' + netTotal.toLocaleString();
+      } else {
+        netElem.style.color = '#c62828';
+        netElem.innerText = '-$' + Math.abs(netTotal).toLocaleString();
+      }
+
+      summaryBox.style.display = 'block';
+      listDiv.innerHTML = filtered.length > 0 ? html : '<p style="text-align:center; color:#888;">尚無交易紀錄</p>';
     }
 
     function queryMonthlyReport() {
-      const selectedMonth = document.getElementById('queryMonthInput').value;
-      if (!selectedMonth) return;
+      const start = document.getElementById('reportStartDate').value;
+      const end = document.getElementById('reportEndDate').value;
+      const targetField = document.getElementById('reportFieldSelect').value;
+
+      if (!start || !end) return;
 
       let incomeSum = 0, expenseSum = 0, wageSum = 0;
 
       allRecordsCache.forEach(r => {
-        if (r.date && r.date.startsWith(selectedMonth)) {
-          const amt = parseFloat(r.totalAmount) || 0;
-          if (r.type === '收入') incomeSum += amt;
-          else if (r.type === '支出') expenseSum += amt;
+        if (r.date && r.date >= start && r.date <= end) {
+          if (!targetField || String(r.field).trim() === String(targetField).trim()) {
+            const amt = parseFloat(r.totalAmount) || 0;
+            if (r.type === '收入') incomeSum += amt;
+            else if (r.type === '支出') expenseSum += amt;
+          }
         }
       });
 
       allWorkLogsCache.forEach(w => {
-        if (w.date && w.date.startsWith(selectedMonth)) {
-          wageSum += (parseFloat(w.dailyWage) || 0);
+        if (w.date && w.date >= start && w.date <= end) {
+          if (!targetField || String(w.field).trim() === String(targetField).trim()) {
+            wageSum += (parseFloat(w.dailyWage) || 0);
+          }
         }
       });
 
@@ -389,7 +481,63 @@
       document.getElementById('monthIncome').innerText = incomeSum.toLocaleString();
       document.getElementById('monthExpense').innerText = expenseSum.toLocaleString();
       document.getElementById('monthWages').innerText = wageSum.toLocaleString();
-      document.getElementById('monthNetProfit').innerText = netProfit.toLocaleString();
+      
+      const netElem = document.getElementById('monthNetProfit');
+      netElem.innerText = (netProfit >= 0 ? '+$' : '-$') + Math.abs(netProfit).toLocaleString();
+      netElem.style.color = netProfit >= 0 ? '#1b5e20' : '#c62828';
+
+      filterReportDetails(currentDetailFilter);
+    }
+
+    function filterReportDetails(type) {
+      currentDetailFilter = type;
+      ['ALL', 'Income', 'Expense', 'Wage'].forEach(t => {
+        const btn = document.getElementById('btnDetail' + t);
+        if (btn) btn.classList.remove('active');
+      });
+
+      if (type === 'ALL') document.getElementById('btnDetailALL').classList.add('active');
+      if (type === '收入') document.getElementById('btnDetailIncome').classList.add('active');
+      if (type === '支出') document.getElementById('btnDetailExpense').classList.add('active');
+      if (type === '工資') document.getElementById('btnDetailWage').classList.add('active');
+
+      const start = document.getElementById('reportStartDate').value;
+      const end = document.getElementById('reportEndDate').value;
+      const targetField = document.getElementById('reportFieldSelect').value;
+      const listDiv = document.getElementById('reportDetailList');
+
+      let html = '';
+
+      if (type === 'ALL' || type === '收入' || type === '支出') {
+        allRecordsCache.forEach(r => {
+          if (r.date >= start && r.date <= end && (!targetField || String(r.field).trim() === String(targetField).trim())) {
+            if (type === 'ALL' || r.type === type) {
+              const isInc = r.type === '收入';
+              const amt = parseFloat(r.totalAmount) || 0;
+              html += `<div class="list-item-card">
+                <div style="font-size:12px; color:#777;">📅 ${r.date} | 🌱 ${r.field} ${r.partner ? '| 🏬 ' + r.partner : ''}</div>
+                <div style="font-weight:bold; font-size:15px; margin:2px 0;">${r.category} - ${r.itemName || '項目'} (${r.qty} ${r.unit} × $${r.price})</div>
+                <div style="color:${isInc ? '#2e7d32' : '#c62828'}; font-weight:bold;">${isInc ? '🟢 收入' : '🔴 支出'}：${isInc ? '+' : '-'}$${amt.toLocaleString()} 元</div>
+              </div>`;
+            }
+          }
+        });
+      }
+
+      if (type === 'ALL' || type === '工資') {
+        allWorkLogsCache.forEach(w => {
+          if (w.date >= start && w.date <= end && (!targetField || String(w.field).trim() === String(targetField).trim())) {
+            const wage = parseFloat(w.dailyWage) || 0;
+            html += `<div class="list-item-card">
+              <div style="font-size:12px; color:#777;">📅 ${w.date} | 🌱 ${w.field}</div>
+              <div style="font-weight:bold; font-size:15px; margin:2px 0;">👷 工人：${w.workerName} (${w.taskDetail || '點工'})</div>
+              <div style="color:#1565c0; font-weight:bold;">🔵 工資支出：-$${wage.toLocaleString()} 元 (${w.hours}小時)</div>
+            </div>`;
+          }
+        });
+      }
+
+      listDiv.innerHTML = html || '<p style="text-align:center; color:#888;">該區間與條件下無紀錄</p>';
     }
 
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -403,7 +551,7 @@
       fetch(GAS_API_URL, {
         method: 'POST',
         body: JSON.stringify({ action: 'addWorker', workerName: name, defaultWage: wage })
-      }).then(res => res.json()).then(data => {
+      }).then(res => res.json()).then(() => {
         alert('成功新增工人：' + name);
         closeModal('modalAddWorker');
         document.getElementById('newWorkerName').value = '';
@@ -419,8 +567,8 @@
       fetch(GAS_API_URL, {
         method: 'POST',
         body: JSON.stringify({ action: 'addPartner', partnerName: name, category: category })
-      }).then(res => res.json()).then(data => {
-        alert('成功新增廠商：' + name);
+      }).then(res => res.json()).then(() => {
+        alert('成功新增客戶：' + name);
         closeModal('modalAddPartner');
         document.getElementById('newPartnerName').value = '';
         loadInitData();
@@ -434,7 +582,7 @@
       fetch(GAS_API_URL, {
         method: 'POST',
         body: JSON.stringify({ action: 'addField', fieldName: name })
-      }).then(res => res.json()).then(data => {
+      }).then(res => res.json()).then(() => {
         alert('成功新增田區：' + name);
         closeModal('modalAddField');
         document.getElementById('newFieldName').value = '';
@@ -463,7 +611,7 @@
           field: document.getElementById('recordField').value,
           note: document.getElementById('recordNote').value.trim()
         })
-      }).then(res => res.json()).then(data => {
+      }).then(res => res.json()).then(() => {
         alert('🎉 記帳成功！總金額：$' + (price * qty) + ' 元');
         document.getElementById('recordPrice').value = '';
         document.getElementById('recordItemName').value = '';
@@ -491,7 +639,7 @@
           hours: hours,
           hourlyWage: hourlyWage
         })
-      }).then(res => res.json()).then(data => {
+      }).then(res => res.json()).then(() => {
         alert(`🎉 成功紀錄 ${workerName} 點工！當日工資：$` + (hours * hourlyWage) + ' 元');
         document.getElementById('workLogTask').value = '';
         loadInitData();
