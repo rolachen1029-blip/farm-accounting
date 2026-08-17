@@ -250,10 +250,23 @@
     }
 
     window.onload = function() {
-      // 網址防呆檢查
-      if (GAS_API_URL === "https://script.google.com/macros/s/AKfycbyd8t8QgF37UptoL06_sEY9CmJc5CbrynrWimh2Oa9RKklu9gf44xtXVvSIi_C5C12KTQ/exec" || GAS_API_URL.indexOf("script.google.com") === -1) {
-        alert("⚠️ 錯誤：您還沒有替換 GAS_API_URL 網址！請用編輯器修改這行並存檔。");
-      }
+      // (已經刪除會誤判的防呆檢查)
+      
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const today = `${year}-${month}-${day}`;
+      const firstDayOfMonth = `${year}-${month}-01`;
+
+      document.getElementById('recordDate').value = today;
+      document.getElementById('workLogDate').value = today;
+      document.getElementById('reportStartDate').value = firstDayOfMonth;
+      document.getElementById('reportEndDate').value = today;
+
+      onRecordTypeChange();
+      loadInitData();
+    };
 
       const now = new Date();
       const year = now.getFullYear();
