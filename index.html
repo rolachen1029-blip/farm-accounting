@@ -54,7 +54,6 @@
       <option value="收入">🟢 收入</option>
     </select>
 
-    <!-- 🌟 選「收入」時才出現客戶欄位 -->
     <div id="partnerContainer" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
         <label style="margin-top:0;">3. 🏬 客戶名稱：</label>
@@ -71,7 +70,6 @@
     <label>5. 📦 品項名稱：</label>
     <input type="text" id="recordItemName" placeholder="如: 黑牛牌肥料、小番茄">
 
-    <!-- 順序：數量 > 單位 > 單價 -->
     <div style="display: flex; gap: 8px; margin-top: 10px;">
       <div style="flex: 1.5;">
         <label style="margin-top:0;">🔢 數量：</label>
@@ -182,7 +180,7 @@
     </div>
   </div>
   
-  <!-- 頁面 4：統計報表 (日期區間 + 明細按鈕) -->
+  <!-- 頁面 4：統計報表 -->
   <div id="tab4" class="card" style="display:none;">
     <h3 style="margin-top:0; color:#2e7d32;">📊 統計報表與明細</h3>
     
@@ -223,7 +221,7 @@
     <div id="reportDetailList" style="margin-top: 15px;"></div>
   </div>
 
-  <!-- 彈窗 1：新增工人 -->
+  <!-- 彈窗群組 -->
   <div id="modalAddWorker" class="modal-overlay">
     <div class="modal-box">
       <h3 style="margin-top:0; color:#2e7d32;">👷 新增工人名冊</h3>
@@ -236,7 +234,6 @@
     </div>
   </div>
 
-  <!-- 彈窗 2：新增客戶 -->
   <div id="modalAddPartner" class="modal-overlay">
     <div class="modal-box">
       <h3 style="margin-top:0; color:#2e7d32;">🏬 新增客戶/廠商</h3>
@@ -254,7 +251,6 @@
     </div>
   </div>
 
-  <!-- 彈窗 3：新增田區 -->
   <div id="modalAddField" class="modal-overlay">
     <div class="modal-box">
       <h3 style="margin-top:0; color:#2e7d32;">🌱 新增田區名稱</h3>
@@ -282,9 +278,21 @@
       "收入": ["果實銷售", "政府補助/獎勵金", "其他收入"]
     };
 
+    // 🌟 修正日期輔助函式：統一轉換為 YYYY-MM-DD
+    function normalizeDate(d) {
+      if (!d) return '';
+      return String(d).replace(/\//g, '-').substring(0, 10);
+    }
+
+    // 🌟 修正：開啟網頁時預設抓取「今年本月1號」到「今天」
     window.onload = function() {
-      const today = new Date().toISOString().split('T')[0];
-      const firstDayOfMonth = today.substring(0, 8) + '01';
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+
+      const today = `${year}-${month}-${day}`;
+      const firstDayOfMonth = `${year}-${month}-01`;
 
       document.getElementById('recordDate').value = today;
       document.getElementById('workLogDate').value = today;
@@ -313,7 +321,6 @@
       }
     }
 
-    // 🌟 清空選單，解決選項重複出現問題
     function loadInitData() {
       fetch(`${GAS_API_URL}?action=getInitData`)
         .then(res => res.json())
@@ -324,7 +331,7 @@
           allRecordsCache = data.allRecords || [];
           allWorkLogsCache = data.allWorkLogs || [];
 
-          // 1. 田區選單
+          // 1. 渲染田區選單
           let fieldOptionHtml = '<option value="">-- 所有田區 --</option>';
           let fieldFormHtml = '<option value="通用田區">通用田區</option>';
           fieldListCache.forEach(f => {
@@ -337,12 +344,12 @@
           document.getElementById('queryPartnerField').innerHTML = fieldOptionHtml;
           document.getElementById('reportFieldSelect').innerHTML = fieldOptionHtml;
 
-          // 2. 工人選單
+          // 2. 渲染工人選單
           const workerSelect = document.getElementById('workLogWorker');
           workerSelect.innerHTML = '<option value="">-- 請選擇工人 --</option>';
           workerListCache.forEach(w => workerSelect.innerHTML += `<option value="${w.name}">${w.name}</option>`);
 
-          // 3. 客戶/廠商選單
+          // 3. 渲染客戶/廠商選單
           const partnerSelect = document.getElementById('recordPartner');
           partnerSelect.innerHTML = '<option value="">-- 請選擇客戶 (可不選) --</option>';
           partnerListCache.forEach(p => partnerSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`);
@@ -351,6 +358,7 @@
           queryPartnerSelect.innerHTML = '<option value="">-- 請選擇客戶/廠商 --</option>';
           partnerListCache.forEach(p => queryPartnerSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`);
 
+          // 如果在對帳或報表分頁，重整資料
           if (document.getElementById('tab3').style.display !== 'none') queryPartnerData();
           if (document.getElementById('tab4').style.display !== 'none') queryMonthlyReport();
         });
@@ -400,9 +408,9 @@
         return;
       }
 
-      let filtered = allRecordsCache.filter(r => String(r.partner).trim() === String(targetPartner).trim());
+      let filtered = allRecordsCache.filter(r => r.partner === targetPartner);
       if (targetField) {
-        filtered = filtered.filter(r => String(r.field).trim() === String(targetField).trim());
+        filtered = filtered.filter(r => r.field === targetField);
       }
 
       let incomeSum = 0;
@@ -410,11 +418,13 @@
       let html = '';
 
       filtered.forEach(r => {
-        const amt = parseFloat(r.totalAmount) || 0;
+        const amt = parseFloat(r.totalAmount) || (parseFloat(r.price) * parseFloat(r.qty)) || 0;
+        const rDate = normalizeDate(r.date);
+        
         if (r.type === '收入') {
           incomeSum += amt;
           html += `<div class="list-item-card">
-            <div style="font-size:12px; color:#777;">📅 ${r.date} | 🌱 ${r.field}</div>
+            <div style="font-size:12px; color:#777;">📅 ${rDate} | 🌱 ${r.field}</div>
             <div style="font-weight:bold; font-size:15px; margin:2px 0;">${r.category} - ${r.itemName || '果實銷售'} (${r.qty} ${r.unit} × $${r.price})</div>
             <div style="color:#2e7d32; font-weight:bold;">🟢 收入：+$${amt.toLocaleString()} 元</div>
             ${r.note ? `<div style="font-size:12px; color:#555;">備註：${r.note}</div>` : ''}
@@ -422,7 +432,7 @@
         } else {
           expenseSum += amt;
           html += `<div class="list-item-card">
-            <div style="font-size:12px; color:#777;">📅 ${r.date} | 🌱 ${r.field}</div>
+            <div style="font-size:12px; color:#777;">📅 ${rDate} | 🌱 ${r.field}</div>
             <div style="font-weight:bold; font-size:15px; margin:2px 0;">${r.category} - ${r.itemName || '一般資材'} (${r.qty} ${r.unit} × $${r.price})</div>
             <div style="color:#c62828; font-weight:bold;">🔴 支出：-$${amt.toLocaleString()} 元</div>
             ${r.note ? `<div style="font-size:12px; color:#555;">備註：${r.note}</div>` : ''}
@@ -449,6 +459,7 @@
       listDiv.innerHTML = filtered.length > 0 ? html : '<p style="text-align:center; color:#888;">尚無交易紀錄</p>';
     }
 
+    // 🌟 修正統計報表日期比對邏輯
     function queryMonthlyReport() {
       const start = document.getElementById('reportStartDate').value;
       const end = document.getElementById('reportEndDate').value;
@@ -459,9 +470,10 @@
       let incomeSum = 0, expenseSum = 0, wageSum = 0;
 
       allRecordsCache.forEach(r => {
-        if (r.date && r.date >= start && r.date <= end) {
-          if (!targetField || String(r.field).trim() === String(targetField).trim()) {
-            const amt = parseFloat(r.totalAmount) || 0;
+        const rDate = normalizeDate(r.date);
+        if (rDate >= start && rDate <= end) {
+          if (!targetField || r.field === targetField) {
+            const amt = parseFloat(r.totalAmount) || (parseFloat(r.price) * parseFloat(r.qty)) || 0;
             if (r.type === '收入') incomeSum += amt;
             else if (r.type === '支出') expenseSum += amt;
           }
@@ -469,9 +481,10 @@
       });
 
       allWorkLogsCache.forEach(w => {
-        if (w.date && w.date >= start && w.date <= end) {
-          if (!targetField || String(w.field).trim() === String(targetField).trim()) {
-            wageSum += (parseFloat(w.dailyWage) || 0);
+        const wDate = normalizeDate(w.date);
+        if (wDate >= start && wDate <= end) {
+          if (!targetField || w.field === targetField) {
+            wageSum += parseFloat(w.dailyWage) || (parseFloat(w.hours) * parseFloat(w.hourlyWage)) || 0;
           }
         }
       });
@@ -510,12 +523,13 @@
 
       if (type === 'ALL' || type === '收入' || type === '支出') {
         allRecordsCache.forEach(r => {
-          if (r.date >= start && r.date <= end && (!targetField || String(r.field).trim() === String(targetField).trim())) {
+          const rDate = normalizeDate(r.date);
+          if (rDate >= start && rDate <= end && (!targetField || r.field === targetField)) {
             if (type === 'ALL' || r.type === type) {
               const isInc = r.type === '收入';
-              const amt = parseFloat(r.totalAmount) || 0;
+              const amt = parseFloat(r.totalAmount) || (parseFloat(r.price) * parseFloat(r.qty)) || 0;
               html += `<div class="list-item-card">
-                <div style="font-size:12px; color:#777;">📅 ${r.date} | 🌱 ${r.field} ${r.partner ? '| 🏬 ' + r.partner : ''}</div>
+                <div style="font-size:12px; color:#777;">📅 ${rDate} | 🌱 ${r.field} ${r.partner ? '| 🏬 ' + r.partner : ''}</div>
                 <div style="font-weight:bold; font-size:15px; margin:2px 0;">${r.category} - ${r.itemName || '項目'} (${r.qty} ${r.unit} × $${r.price})</div>
                 <div style="color:${isInc ? '#2e7d32' : '#c62828'}; font-weight:bold;">${isInc ? '🟢 收入' : '🔴 支出'}：${isInc ? '+' : '-'}$${amt.toLocaleString()} 元</div>
               </div>`;
@@ -526,10 +540,11 @@
 
       if (type === 'ALL' || type === '工資') {
         allWorkLogsCache.forEach(w => {
-          if (w.date >= start && w.date <= end && (!targetField || String(w.field).trim() === String(targetField).trim())) {
-            const wage = parseFloat(w.dailyWage) || 0;
+          const wDate = normalizeDate(w.date);
+          if (wDate >= start && wDate <= end && (!targetField || w.field === targetField)) {
+            const wage = parseFloat(w.dailyWage) || (parseFloat(w.hours) * parseFloat(w.hourlyWage)) || 0;
             html += `<div class="list-item-card">
-              <div style="font-size:12px; color:#777;">📅 ${w.date} | 🌱 ${w.field}</div>
+              <div style="font-size:12px; color:#777;">📅 ${wDate} | 🌱 ${w.field}</div>
               <div style="font-weight:bold; font-size:15px; margin:2px 0;">👷 工人：${w.workerName} (${w.taskDetail || '點工'})</div>
               <div style="color:#1565c0; font-weight:bold;">🔵 工資支出：-$${wage.toLocaleString()} 元 (${w.hours}小時)</div>
             </div>`;
