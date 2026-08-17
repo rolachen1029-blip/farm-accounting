@@ -44,16 +44,13 @@
   <!-- 頁面 1：每日記帳 -->
   <div id="tab1" class="card">
     <h3 style="margin-top:0; color:#2e7d32;">💵 記錄收支明細</h3>
-    
     <label>1. 📅 交易日期：</label>
     <input type="date" id="recordDate">
-
     <label>2. ⇄ 交易類型：</label>
     <select id="recordType" onchange="onRecordTypeChange()">
       <option value="支出">🔴 支出</option>
       <option value="收入">🟢 收入</option>
     </select>
-
     <div id="partnerContainer" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
         <label style="margin-top:0;">3. 🏬 客戶名稱：</label>
@@ -63,13 +60,10 @@
         <option value="">-- 請選擇客戶 (可不選) --</option>
       </select>
     </div>
-
     <label>4. 🏷️ 收支項目：</label>
     <select id="recordCategory"></select>
-
     <label>5. 📦 品項名稱：</label>
     <input type="text" id="recordItemName" placeholder="如: 黑牛牌肥料、小番茄">
-
     <div style="display: flex; gap: 8px; margin-top: 10px;">
       <div style="flex: 1.5;">
         <label style="margin-top:0;">🔢 數量：</label>
@@ -93,48 +87,33 @@
         <input type="number" id="recordPrice" placeholder="如: 350" oninput="calcRecordTotal()">
       </div>
     </div>
-
     <div style="background: #e8f5e9; padding: 10px; border-radius: 8px; margin-top: 12px; text-align: right; font-weight: bold; color: #2e7d32; font-size: 17px;">
       💰 總金額：$<span id="showRecordTotal">0</span> 元
     </div>
-
     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
       <label style="margin-top:0;">🌱 工作田區：</label>
       <button type="button" class="btn-add-modal" onclick="openModal('modalAddField')">➕ 新增田區</button>
     </div>
-    <select id="recordField">
-      <option value="通用田區">通用田區</option>
-    </select>
-
+    <select id="recordField"><option value="通用田區">通用田區</option></select>
     <label>📝 備註說明：</label>
     <input type="text" id="recordNote" placeholder="如: 賒帳、現金結清">
-
     <button type="button" onclick="submitRecord()" class="btn-submit">🚀 送出這筆記帳</button>
   </div>
 
   <!-- 頁面 2：工時點工 -->
   <div id="tab2" class="card" style="display:none;">
     <h3 style="margin-top:0; color:#1565c0;">⏱️ 記錄工人出工</h3>
-    
     <label>📅 工作日期：</label>
     <input type="date" id="workLogDate">
-
     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
       <label style="margin-top:0;">👷 工人姓名：</label>
       <button type="button" class="btn-add-modal" onclick="openModal('modalAddWorker')">➕ 新增工人</button>
     </div>
-    <select id="workLogWorker" onchange="onWorkerChange()">
-      <option value="">-- 請選擇工人 --</option>
-    </select>
-
+    <select id="workLogWorker" onchange="onWorkerChange()"><option value="">-- 請選擇工人 --</option></select>
     <label>🌱 工作田區：</label>
-    <select id="workLogField">
-      <option value="通用田區">通用田區</option>
-    </select>
-
+    <select id="workLogField"><option value="通用田區">通用田區</option></select>
     <label>🛠️ 工作內容：</label>
     <input type="text" id="workLogTask" placeholder="例如：採收番茄、除草、剪枝">
-
     <div style="display: flex; gap: 8px; margin-top: 10px;">
       <div style="flex: 1;">
         <label style="margin-top:0;">⏳ 時數 (小時)：</label>
@@ -145,28 +124,19 @@
         <input type="number" id="workLogHourlyWage" placeholder="如: 200" oninput="calcWorkWage()">
       </div>
     </div>
-
     <div style="background: #e3f2fd; padding: 10px; border-radius: 8px; margin-top: 12px; text-align: right; font-weight: bold; color: #1565c0; font-size: 17px;">
       💰 當日工資：$<span id="showDailyWage">0</span> 元
     </div>
-
     <button type="button" onclick="submitWorkLog()" class="btn-submit" style="background: #1565c0;">🚀 送出點工紀錄</button>
   </div>
 
-  <!-- 頁面 3：廠商對帳 (含損益與田區篩選) -->
+  <!-- 頁面 3：廠商對帳 -->
   <div id="tab3" class="card" style="display:none;">
     <h3 style="margin-top:0; color:#2e7d32;">🔍 對帳查詢</h3>
-    
     <label>🏢 請選擇客戶/廠商：</label>
-    <select id="queryPartnerSelect" onchange="queryPartnerData()">
-      <option value="">-- 請選擇 --</option>
-    </select>
-
+    <select id="queryPartnerSelect" onchange="queryPartnerData()"><option value="">-- 請選擇 --</option></select>
     <label>🌱 篩選工作田區 (可不選)：</label>
-    <select id="queryPartnerField" onchange="queryPartnerData()">
-      <option value="">-- 所有田區 --</option>
-    </select>
-
+    <select id="queryPartnerField" onchange="queryPartnerData()"><option value="">-- 所有田區 --</option></select>
     <div id="partnerSummaryBox" style="display:none; background: #f8f9fa; padding: 12px; border-radius: 8px; margin-top: 14px; border: 1px solid #e0e0e0;">
       <div>累積交易筆數：<span id="partnerTotalCount">0</span> 筆</div>
       <div style="margin-top: 6px; font-weight: bold;">🟢 收入總計：<span style="color:#2e7d32;">+$<span id="partnerIncomeSum">0</span></span> 元</div>
@@ -174,7 +144,6 @@
       <hr style="border:none; border-top:1px dashed #ccc; margin:8px 0;">
       <div style="font-size:18px; font-weight:bold;">淨額總計：<span id="partnerNetTotal">$0</span> 元</div>
     </div>
-
     <div id="partnerRecordsList" style="margin-top: 15px;">
       <p style="text-align:center; color:#888;">請選擇上方對帳對象</p>
     </div>
@@ -183,7 +152,6 @@
   <!-- 頁面 4：統計報表 -->
   <div id="tab4" class="card" style="display:none;">
     <h3 style="margin-top:0; color:#2e7d32;">📊 統計報表與明細</h3>
-    
     <div style="display: flex; gap: 8px;">
       <div style="flex: 1;">
         <label style="margin-top:0;">📅 開始日期：</label>
@@ -194,12 +162,8 @@
         <input type="date" id="reportEndDate" onchange="queryMonthlyReport()">
       </div>
     </div>
-
     <label>🌱 篩選工作田區 (可不選)：</label>
-    <select id="reportFieldSelect" onchange="queryMonthlyReport()">
-      <option value="">-- 所有田區 --</option>
-    </select>
-
+    <select id="reportFieldSelect" onchange="queryMonthlyReport()"><option value="">-- 所有田區 --</option></select>
     <div id="monthlySummaryBox" style="background: #f9f9f9; padding: 12px; border-radius: 8px; margin-top: 14px; border: 1px solid #e0e0e0;">
       <div style="color: #2e7d32; font-weight: bold;">🟢 期間總收入：$<span id="monthIncome">0</span> 元</div>
       <div style="color: #c62828; font-weight: bold; margin-top:4px;">🔴 期間資材支出：$<span id="monthExpense">0</span> 元</div>
@@ -207,7 +171,6 @@
       <hr style="border:none; border-top:1px dashed #ccc; margin:8px 0;">
       <div style="font-size:18px; font-weight:bold; color: #1b5e20;">💵 期間預估淨利：$<span id="monthNetProfit">0</span> 元</div>
     </div>
-
     <div style="margin-top: 18px;">
       <label style="margin-top:0; margin-bottom: 8px;">🔍 查看該區間明細：</label>
       <div style="display: flex; gap: 6px; overflow-x: auto;">
@@ -217,11 +180,10 @@
         <button class="filter-btn" id="btnDetailWage" onclick="filterReportDetails('工資')">🔵 工資明細</button>
       </div>
     </div>
-
     <div id="reportDetailList" style="margin-top: 15px;"></div>
   </div>
 
-  <!-- 彈窗群組 -->
+  <!-- 彈窗區 -->
   <div id="modalAddWorker" class="modal-overlay">
     <div class="modal-box">
       <h3 style="margin-top:0; color:#2e7d32;">👷 新增工人名冊</h3>
@@ -263,14 +225,11 @@
   </div>
 
   <script>
-    // ⚠️ 務必替換成您的 GAS 部署網址！
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyd8t8QgF37UptoL06_sEY9CmJc5CbrynrWimh2Oa9RKklu9gf44xtXVvSIi_C5C12KTQ/exec";
+    // ⚠️ 務必替換成您自己的 GAS 網址！
+    const GAS_API_URL = "您的_GAS_WEB_APP_URL";
 
-    let workerListCache = [];
-    let partnerListCache = [];
-    let fieldListCache = [];
-    let allRecordsCache = [];
-    let allWorkLogsCache = [];
+    let workerListCache = [], partnerListCache = [], fieldListCache = [];
+    let allRecordsCache = [], allWorkLogsCache = [];
     let currentDetailFilter = 'ALL';
 
     const categoryOptions = {
@@ -278,19 +237,28 @@
       "收入": ["果實銷售", "政府補助/獎勵金", "其他收入"]
     };
 
-    // 🌟 修正日期輔助函式：統一轉換為 YYYY-MM-DD
+    // 🔥 強制轉換日期格式，解決各種試算表日期錯亂問題
     function normalizeDate(d) {
       if (!d) return '';
-      return String(d).replace(/\//g, '-').substring(0, 10);
+      let dateOnly = String(d).split('T')[0].split(' ')[0];
+      let parts = dateOnly.split(/[-/]/);
+      if (parts.length === 3) {
+        let y = parts[0], m = parts[1].padStart(2, '0'), day = parts[2].padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      }
+      return dateOnly;
     }
 
-    // 🌟 修正：開啟網頁時預設抓取「今年本月1號」到「今天」
     window.onload = function() {
+      // 網址防呆檢查
+      if (GAS_API_URL === "https://script.google.com/macros/s/AKfycbyd8t8QgF37UptoL06_sEY9CmJc5CbrynrWimh2Oa9RKklu9gf44xtXVvSIi_C5C12KTQ/exec" || GAS_API_URL.indexOf("script.google.com") === -1) {
+        alert("⚠️ 錯誤：您還沒有替換 GAS_API_URL 網址！請用編輯器修改這行並存檔。");
+      }
+
       const now = new Date();
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const day = String(now.getDate()).padStart(2, '0');
-
       const today = `${year}-${month}-${day}`;
       const firstDayOfMonth = `${year}-${month}-01`;
 
@@ -313,12 +281,8 @@
         categorySelect.innerHTML += `<option value="${cat}">${cat}</option>`;
       });
 
-      if (type === '收入') {
-        partnerBox.style.display = 'block';
-      } else {
-        partnerBox.style.display = 'none';
-        document.getElementById('recordPartner').value = '';
-      }
+      if (type === '收入') partnerBox.style.display = 'block';
+      else { partnerBox.style.display = 'none'; document.getElementById('recordPartner').value = ''; }
     }
 
     function loadInitData() {
@@ -331,25 +295,21 @@
           allRecordsCache = data.allRecords || [];
           allWorkLogsCache = data.allWorkLogs || [];
 
-          // 1. 渲染田區選單
           let fieldOptionHtml = '<option value="">-- 所有田區 --</option>';
           let fieldFormHtml = '<option value="通用田區">通用田區</option>';
           fieldListCache.forEach(f => {
             fieldOptionHtml += `<option value="${f}">${f}</option>`;
             fieldFormHtml += `<option value="${f}">${f}</option>`;
           });
-
           document.getElementById('recordField').innerHTML = fieldFormHtml;
           document.getElementById('workLogField').innerHTML = fieldFormHtml;
           document.getElementById('queryPartnerField').innerHTML = fieldOptionHtml;
           document.getElementById('reportFieldSelect').innerHTML = fieldOptionHtml;
 
-          // 2. 渲染工人選單
           const workerSelect = document.getElementById('workLogWorker');
           workerSelect.innerHTML = '<option value="">-- 請選擇工人 --</option>';
           workerListCache.forEach(w => workerSelect.innerHTML += `<option value="${w.name}">${w.name}</option>`);
 
-          // 3. 渲染客戶/廠商選單
           const partnerSelect = document.getElementById('recordPartner');
           partnerSelect.innerHTML = '<option value="">-- 請選擇客戶 (可不選) --</option>';
           partnerListCache.forEach(p => partnerSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`);
@@ -358,19 +318,16 @@
           queryPartnerSelect.innerHTML = '<option value="">-- 請選擇客戶/廠商 --</option>';
           partnerListCache.forEach(p => queryPartnerSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`);
 
-          // 如果在對帳或報表分頁，重整資料
           if (document.getElementById('tab3').style.display !== 'none') queryPartnerData();
           if (document.getElementById('tab4').style.display !== 'none') queryMonthlyReport();
-        });
+        }).catch(err => alert("⚠️ 連線或讀取失敗，請確認 GAS 網址與網路連線。"));
     }
 
     function switchTab(tabId) {
       ['tab1', 'tab2', 'tab3', 'tab4'].forEach(id => document.getElementById(id).style.display = 'none');
       ['btnTab1', 'btnTab2', 'btnTab3', 'btnTab4'].forEach(id => document.getElementById(id).classList.remove('active'));
-      
       document.getElementById(tabId).style.display = 'block';
       document.getElementById('btn' + tabId.charAt(0).toUpperCase() + tabId.slice(1)).classList.add('active');
-
       if (tabId === 'tab3') queryPartnerData();
       if (tabId === 'tab4') queryMonthlyReport();
     }
@@ -382,11 +339,8 @@
     }
 
     function onWorkerChange() {
-      const selectedName = document.getElementById('workLogWorker').value;
-      const worker = workerListCache.find(w => w.name === selectedName);
-      if (worker && worker.defaultWage) {
-        document.getElementById('workLogHourlyWage').value = worker.defaultWage;
-      }
+      const worker = workerListCache.find(w => w.name === document.getElementById('workLogWorker').value);
+      if (worker && worker.defaultWage) document.getElementById('workLogHourlyWage').value = worker.defaultWage;
       calcWorkWage();
     }
 
@@ -396,6 +350,7 @@
       document.getElementById('showDailyWage').innerText = (hours * wage).toLocaleString();
     }
 
+    // 🔥 完美抓出所有資料並處理空白的對帳功能
     function queryPartnerData() {
       const targetPartner = document.getElementById('queryPartnerSelect').value;
       const targetField = document.getElementById('queryPartnerField').value;
@@ -408,20 +363,17 @@
         return;
       }
 
-      let filtered = allRecordsCache.filter(r => r.partner === targetPartner);
-      if (targetField) {
-        filtered = filtered.filter(r => r.field === targetField);
-      }
+      let filtered = allRecordsCache.filter(r => String(r.partner).trim() === String(targetPartner).trim());
+      if (targetField) filtered = filtered.filter(r => String(r.field).trim() === String(targetField).trim());
 
-      let incomeSum = 0;
-      let expenseSum = 0;
-      let html = '';
+      let incomeSum = 0, expenseSum = 0, html = '';
 
       filtered.forEach(r => {
         const amt = parseFloat(r.totalAmount) || (parseFloat(r.price) * parseFloat(r.qty)) || 0;
         const rDate = normalizeDate(r.date);
+        const rType = String(r.type).trim();
         
-        if (r.type === '收入') {
+        if (rType === '收入') {
           incomeSum += amt;
           html += `<div class="list-item-card">
             <div style="font-size:12px; color:#777;">📅 ${rDate} | 🌱 ${r.field}</div>
@@ -441,41 +393,35 @@
       });
 
       const netTotal = incomeSum - expenseSum;
-
       document.getElementById('partnerTotalCount').innerText = filtered.length;
       document.getElementById('partnerIncomeSum').innerText = incomeSum.toLocaleString();
       document.getElementById('partnerExpenseSum').innerText = expenseSum.toLocaleString();
       
       const netElem = document.getElementById('partnerNetTotal');
-      if (netTotal >= 0) {
-        netElem.style.color = '#2e7d32';
-        netElem.innerText = '+$' + netTotal.toLocaleString();
-      } else {
-        netElem.style.color = '#c62828';
-        netElem.innerText = '-$' + Math.abs(netTotal).toLocaleString();
-      }
+      if (netTotal >= 0) { netElem.style.color = '#2e7d32'; netElem.innerText = '+$' + netTotal.toLocaleString(); } 
+      else { netElem.style.color = '#c62828'; netElem.innerText = '-$' + Math.abs(netTotal).toLocaleString(); }
 
       summaryBox.style.display = 'block';
       listDiv.innerHTML = filtered.length > 0 ? html : '<p style="text-align:center; color:#888;">尚無交易紀錄</p>';
     }
 
-    // 🌟 修正統計報表日期比對邏輯
+    // 🔥 確保統計報表內部完全套用 normalizeDate 與字串清整
     function queryMonthlyReport() {
       const start = document.getElementById('reportStartDate').value;
       const end = document.getElementById('reportEndDate').value;
       const targetField = document.getElementById('reportFieldSelect').value;
-
       if (!start || !end) return;
 
       let incomeSum = 0, expenseSum = 0, wageSum = 0;
 
       allRecordsCache.forEach(r => {
         const rDate = normalizeDate(r.date);
+        const rType = String(r.type).trim(); // 防呆去空白
         if (rDate >= start && rDate <= end) {
-          if (!targetField || r.field === targetField) {
+          if (!targetField || String(r.field).trim() === String(targetField).trim()) {
             const amt = parseFloat(r.totalAmount) || (parseFloat(r.price) * parseFloat(r.qty)) || 0;
-            if (r.type === '收入') incomeSum += amt;
-            else if (r.type === '支出') expenseSum += amt;
+            if (rType === '收入') incomeSum += amt;
+            else if (rType === '支出') expenseSum += amt;
           }
         }
       });
@@ -483,14 +429,13 @@
       allWorkLogsCache.forEach(w => {
         const wDate = normalizeDate(w.date);
         if (wDate >= start && wDate <= end) {
-          if (!targetField || w.field === targetField) {
+          if (!targetField || String(w.field).trim() === String(targetField).trim()) {
             wageSum += parseFloat(w.dailyWage) || (parseFloat(w.hours) * parseFloat(w.hourlyWage)) || 0;
           }
         }
       });
 
       const netProfit = incomeSum - expenseSum - wageSum;
-
       document.getElementById('monthIncome').innerText = incomeSum.toLocaleString();
       document.getElementById('monthExpense').innerText = expenseSum.toLocaleString();
       document.getElementById('monthWages').innerText = wageSum.toLocaleString();
@@ -508,7 +453,6 @@
         const btn = document.getElementById('btnDetail' + t);
         if (btn) btn.classList.remove('active');
       });
-
       if (type === 'ALL') document.getElementById('btnDetailALL').classList.add('active');
       if (type === '收入') document.getElementById('btnDetailIncome').classList.add('active');
       if (type === '支出') document.getElementById('btnDetailExpense').classList.add('active');
@@ -518,15 +462,15 @@
       const end = document.getElementById('reportEndDate').value;
       const targetField = document.getElementById('reportFieldSelect').value;
       const listDiv = document.getElementById('reportDetailList');
-
       let html = '';
 
       if (type === 'ALL' || type === '收入' || type === '支出') {
         allRecordsCache.forEach(r => {
           const rDate = normalizeDate(r.date);
-          if (rDate >= start && rDate <= end && (!targetField || r.field === targetField)) {
-            if (type === 'ALL' || r.type === type) {
-              const isInc = r.type === '收入';
+          const rType = String(r.type).trim();
+          if (rDate >= start && rDate <= end && (!targetField || String(r.field).trim() === String(targetField).trim())) {
+            if (type === 'ALL' || rType === type) {
+              const isInc = rType === '收入';
               const amt = parseFloat(r.totalAmount) || (parseFloat(r.price) * parseFloat(r.qty)) || 0;
               html += `<div class="list-item-card">
                 <div style="font-size:12px; color:#777;">📅 ${rDate} | 🌱 ${r.field} ${r.partner ? '| 🏬 ' + r.partner : ''}</div>
@@ -541,7 +485,7 @@
       if (type === 'ALL' || type === '工資') {
         allWorkLogsCache.forEach(w => {
           const wDate = normalizeDate(w.date);
-          if (wDate >= start && wDate <= end && (!targetField || w.field === targetField)) {
+          if (wDate >= start && wDate <= end && (!targetField || String(w.field).trim() === String(targetField).trim())) {
             const wage = parseFloat(w.dailyWage) || (parseFloat(w.hours) * parseFloat(w.hourlyWage)) || 0;
             html += `<div class="list-item-card">
               <div style="font-size:12px; color:#777;">📅 ${wDate} | 🌱 ${w.field}</div>
@@ -561,103 +505,55 @@
     function submitNewWorker() {
       const name = document.getElementById('newWorkerName').value.trim();
       const wage = document.getElementById('newWorkerWage').value.trim();
-      if (!name) { alert('請輸入工人姓名！'); return; }
-
-      fetch(GAS_API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'addWorker', workerName: name, defaultWage: wage })
-      }).then(res => res.json()).then(() => {
-        alert('成功新增工人：' + name);
-        closeModal('modalAddWorker');
-        document.getElementById('newWorkerName').value = '';
-        loadInitData();
+      if (!name) return alert('請輸入工人姓名！');
+      fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: 'addWorker', workerName: name, defaultWage: wage }) }).then(() => {
+        alert('成功新增工人：' + name); closeModal('modalAddWorker'); document.getElementById('newWorkerName').value = ''; loadInitData();
       });
     }
 
     function submitNewPartner() {
       const name = document.getElementById('newPartnerName').value.trim();
       const category = document.getElementById('newPartnerCategory').value;
-      if (!name) { alert('請輸入名稱！'); return; }
-
-      fetch(GAS_API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'addPartner', partnerName: name, category: category })
-      }).then(res => res.json()).then(() => {
-        alert('成功新增客戶：' + name);
-        closeModal('modalAddPartner');
-        document.getElementById('newPartnerName').value = '';
-        loadInitData();
+      if (!name) return alert('請輸入名稱！');
+      fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: 'addPartner', partnerName: name, category: category }) }).then(() => {
+        alert('成功新增客戶：' + name); closeModal('modalAddPartner'); document.getElementById('newPartnerName').value = ''; loadInitData();
       });
     }
 
     function submitNewField() {
       const name = document.getElementById('newFieldName').value.trim();
-      if (!name) { alert('請輸入田區名稱！'); return; }
-
-      fetch(GAS_API_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'addField', fieldName: name })
-      }).then(res => res.json()).then(() => {
-        alert('成功新增田區：' + name);
-        closeModal('modalAddField');
-        document.getElementById('newFieldName').value = '';
-        loadInitData();
+      if (!name) return alert('請輸入田區名稱！');
+      fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: 'addField', fieldName: name }) }).then(() => {
+        alert('成功新增田區：' + name); closeModal('modalAddField'); document.getElementById('newFieldName').value = ''; loadInitData();
       });
     }
 
     function submitRecord() {
-      const date = document.getElementById('recordDate').value;
-      const price = document.getElementById('recordPrice').value;
-      const qty = document.getElementById('recordQty').value;
-      if (!date || !price) { alert('請填寫日期與單價！'); return; }
-
+      const date = document.getElementById('recordDate').value, price = document.getElementById('recordPrice').value, qty = document.getElementById('recordQty').value;
+      if (!date || !price) return alert('請填寫日期與單價！');
       fetch(GAS_API_URL, {
         method: 'POST',
         body: JSON.stringify({
-          action: 'addRecord',
-          date: date,
-          type: document.getElementById('recordType').value,
-          partner: document.getElementById('recordPartner').value,
-          category: document.getElementById('recordCategory').value,
-          itemName: document.getElementById('recordItemName').value.trim(),
-          qty: qty,
-          unit: document.getElementById('recordUnit').value,
-          price: price,
-          field: document.getElementById('recordField').value,
-          note: document.getElementById('recordNote').value.trim()
+          action: 'addRecord', date: date, type: document.getElementById('recordType').value,
+          partner: document.getElementById('recordPartner').value, category: document.getElementById('recordCategory').value,
+          itemName: document.getElementById('recordItemName').value.trim(), qty: qty, unit: document.getElementById('recordUnit').value,
+          price: price, field: document.getElementById('recordField').value, note: document.getElementById('recordNote').value.trim()
         })
-      }).then(res => res.json()).then(() => {
+      }).then(() => {
         alert('🎉 記帳成功！總金額：$' + (price * qty) + ' 元');
-        document.getElementById('recordPrice').value = '';
-        document.getElementById('recordItemName').value = '';
-        document.getElementById('recordNote').value = '';
-        calcRecordTotal();
-        loadInitData();
+        document.getElementById('recordPrice').value = ''; document.getElementById('recordItemName').value = ''; document.getElementById('recordNote').value = '';
+        calcRecordTotal(); loadInitData();
       });
     }
 
     function submitWorkLog() {
-      const date = document.getElementById('workLogDate').value;
-      const workerName = document.getElementById('workLogWorker').value;
-      const hours = document.getElementById('workLogHours').value;
-      const hourlyWage = document.getElementById('workLogHourlyWage').value;
-      if (!date || !workerName || !hours) { alert('請填寫完整點工資訊！'); return; }
-
+      const date = document.getElementById('workLogDate').value, workerName = document.getElementById('workLogWorker').value, hours = document.getElementById('workLogHours').value, hourlyWage = document.getElementById('workLogHourlyWage').value;
+      if (!date || !workerName || !hours) return alert('請填寫完整點工資訊！');
       fetch(GAS_API_URL, {
         method: 'POST',
-        body: JSON.stringify({
-          action: 'addWorkLog',
-          date: date,
-          workerName: workerName,
-          field: document.getElementById('workLogField').value,
-          taskDetail: document.getElementById('workLogTask').value,
-          hours: hours,
-          hourlyWage: hourlyWage
-        })
-      }).then(res => res.json()).then(() => {
-        alert(`🎉 成功紀錄 ${workerName} 點工！當日工資：$` + (hours * hourlyWage) + ' 元');
-        document.getElementById('workLogTask').value = '';
-        loadInitData();
+        body: JSON.stringify({ action: 'addWorkLog', date: date, workerName: workerName, field: document.getElementById('workLogField').value, taskDetail: document.getElementById('workLogTask').value, hours: hours, hourlyWage: hourlyWage })
+      }).then(() => {
+        alert(`🎉 成功紀錄 ${workerName} 點工！當日工資：$` + (hours * hourlyWage) + ' 元'); document.getElementById('workLogTask').value = ''; loadInitData();
       });
     }
   </script>
