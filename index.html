@@ -225,7 +225,7 @@
   </div>
 
   <script>
-    // ⚠️ 務必替換成您自己的 GAS 網址！
+    // ✅ 這裡已經幫您設定好您專屬的 GAS 網址了，不用改！
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyd8t8QgF37UptoL06_sEY9CmJc5CbrynrWimh2Oa9RKklu9gf44xtXVvSIi_C5C12KTQ/exec";
 
     let workerListCache = [], partnerListCache = [], fieldListCache = [];
@@ -237,7 +237,6 @@
       "收入": ["果實銷售", "政府補助/獎勵金", "其他收入"]
     };
 
-    // 🔥 強制轉換日期格式，解決各種試算表日期錯亂問題
     function normalizeDate(d) {
       if (!d) return '';
       let dateOnly = String(d).split('T')[0].split(' ')[0];
@@ -249,25 +248,8 @@
       return dateOnly;
     }
 
+    // 🌟 網頁載入時初始化
     window.onload = function() {
-      // (已經刪除會誤判的防呆檢查)
-      
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const today = `${year}-${month}-${day}`;
-      const firstDayOfMonth = `${year}-${month}-01`;
-
-      document.getElementById('recordDate').value = today;
-      document.getElementById('workLogDate').value = today;
-      document.getElementById('reportStartDate').value = firstDayOfMonth;
-      document.getElementById('reportEndDate').value = today;
-
-      onRecordTypeChange();
-      loadInitData();
-    };
-
       const now = new Date();
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -333,7 +315,10 @@
 
           if (document.getElementById('tab3').style.display !== 'none') queryPartnerData();
           if (document.getElementById('tab4').style.display !== 'none') queryMonthlyReport();
-        }).catch(err => alert("⚠️ 連線或讀取失敗，請確認 GAS 網址與網路連線。"));
+        }).catch(err => {
+          console.error("載入資料發生錯誤：", err);
+          alert("⚠️ 無法連線到後台，請確認網路連線是否正常。");
+        });
     }
 
     function switchTab(tabId) {
@@ -363,7 +348,6 @@
       document.getElementById('showDailyWage').innerText = (hours * wage).toLocaleString();
     }
 
-    // 🔥 完美抓出所有資料並處理空白的對帳功能
     function queryPartnerData() {
       const targetPartner = document.getElementById('queryPartnerSelect').value;
       const targetField = document.getElementById('queryPartnerField').value;
@@ -418,7 +402,6 @@
       listDiv.innerHTML = filtered.length > 0 ? html : '<p style="text-align:center; color:#888;">尚無交易紀錄</p>';
     }
 
-    // 🔥 確保統計報表內部完全套用 normalizeDate 與字串清整
     function queryMonthlyReport() {
       const start = document.getElementById('reportStartDate').value;
       const end = document.getElementById('reportEndDate').value;
@@ -429,7 +412,7 @@
 
       allRecordsCache.forEach(r => {
         const rDate = normalizeDate(r.date);
-        const rType = String(r.type).trim(); // 防呆去空白
+        const rType = String(r.type).trim();
         if (rDate >= start && rDate <= end) {
           if (!targetField || String(r.field).trim() === String(targetField).trim()) {
             const amt = parseFloat(r.totalAmount) || (parseFloat(r.price) * parseFloat(r.qty)) || 0;
