@@ -25,7 +25,6 @@
     .list-item-card { border-bottom: 1px solid #eee; padding: 10px 0; font-size: 14px; }
     .list-item-card:last-child { border-bottom: none; }
     
-    /* 彈窗樣式 */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; }
     .modal-box { background: #fff; padding: 20px; border-radius: 12px; width: 85%; max-width: 320px; text-align: center; }
   </style>
@@ -46,11 +45,13 @@
     <h3 style="margin-top:0; color:#2e7d32;">💵 記錄收支明細</h3>
     <label>1. 📅 交易日期：</label>
     <input type="date" id="recordDate">
+    
     <label>2. ⇄ 交易類型：</label>
     <select id="recordType" onchange="onRecordTypeChange()">
       <option value="支出">🔴 支出</option>
       <option value="收入">🟢 收入</option>
     </select>
+    
     <div id="partnerContainer" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
         <label style="margin-top:0;">3. 🏬 客戶名稱：</label>
@@ -60,44 +61,29 @@
         <option value="">-- 請選擇客戶 (可不選) --</option>
       </select>
     </div>
+    
     <label>4. 🏷️ 收支項目：</label>
     <select id="recordCategory"></select>
-    <label>5. 📦 品項名稱：</label>
-    <input type="text" id="recordItemName" placeholder="如: 黑牛牌肥料、小番茄">
-    <div style="display: flex; gap: 8px; margin-top: 10px;">
-      <div style="flex: 1.5;">
-        <label style="margin-top:0;">🔢 數量：</label>
-        <input type="number" id="recordQty" value="1" placeholder="如: 10" oninput="calcRecordTotal()">
-      </div>
-      <div style="flex: 1.5;">
-        <label style="margin-top:0;">📦 單位：</label>
-        <select id="recordUnit">
-          <option value="斤">斤</option>
-          <option value="公斤">公斤</option>
-          <option value="箱">箱</option>
-          <option value="包">包</option>
-          <option value="件">件</option>
-          <option value="罐">罐</option>
-          <option value="個">個</option>
-          <option value="分">分</option>
-        </select>
-      </div>
-      <div style="flex: 2;">
-        <label style="margin-top:0;">💵 單價：</label>
-        <input type="number" id="recordPrice" placeholder="如: 350" oninput="calcRecordTotal()">
-      </div>
-    </div>
+
+    <!-- 🌟 動態品項區塊 -->
+    <div id="itemListContainer" style="margin-top: 14px;"></div>
+    
+    <button type="button" onclick="addMoreItem()" style="width: 100%; margin-top: 10px; padding: 12px; background: #fff; color: #2e7d32; border: 2px dashed #2e7d32; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px;">➕ 新增下一個品項</button>
+
     <div style="background: #e8f5e9; padding: 10px; border-radius: 8px; margin-top: 12px; text-align: right; font-weight: bold; color: #2e7d32; font-size: 17px;">
-      💰 總金額：$<span id="showRecordTotal">0</span> 元
+      💰 本次總金額：$<span id="showRecordTotal">0</span> 元
     </div>
+    
     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
       <label style="margin-top:0;">🌱 工作田區：</label>
       <button type="button" class="btn-add-modal" onclick="openModal('modalAddField')">➕ 新增田區</button>
     </div>
     <select id="recordField"><option value="通用田區">通用田區</option></select>
+    
     <label>📝 備註說明：</label>
     <input type="text" id="recordNote" placeholder="如: 賒帳、現金結清">
-    <button type="button" onclick="submitRecord()" class="btn-submit">🚀 送出這筆記帳</button>
+    
+    <button id="submitBtn" type="button" onclick="submitRecord()" class="btn-submit">🚀 送出整批記帳</button>
   </div>
 
   <!-- 頁面 2：工時點工 -->
@@ -130,7 +116,7 @@
     <button type="button" onclick="submitWorkLog()" class="btn-submit" style="background: #1565c0;">🚀 送出點工紀錄</button>
   </div>
 
-  <!-- 頁面 3：廠商對帳 (🌟 新增工人薪資同步查詢) -->
+  <!-- 頁面 3：廠商對帳 -->
   <div id="tab3" class="card" style="display:none;">
     <h3 style="margin-top:0; color:#2e7d32;">🔍 對帳查詢</h3>
     <label>🏢 請選擇對象 (客戶/廠商/工人)：</label>
@@ -225,6 +211,7 @@
   </div>
 
   <script>
+    // ⚠️ 請保留您的 GAS_API_URL！
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyd8t8QgF37UptoL06_sEY9CmJc5CbrynrWimh2Oa9RKklu9gf44xtXVvSIi_C5C12KTQ/exec";
 
     let workerListCache = [], partnerListCache = [], fieldListCache = [];
@@ -236,7 +223,6 @@
       "收入": ["果實銷售", "政府補助/獎勵金", "其他收入"]
     };
 
-    // 🔥 終極日期防呆機制：確保比較時格式統一為 YYYY-MM-DD
     function normalizeDate(d) {
       if (!d) return '';
       let s = String(d).trim().replace(/\//g, '-').split('T')[0].split(' ')[0];
@@ -261,9 +247,58 @@
       document.getElementById('reportStartDate').value = firstDayOfMonth;
       document.getElementById('reportEndDate').value = today;
 
+      // 載入初始的一個輸入框
+      resetItemBlocks();
       onRecordTypeChange();
       loadInitData();
     };
+
+    // 🌟 動態新增品項輸入框
+    function addMoreItem() {
+      const container = document.getElementById('itemListContainer');
+      const div = document.createElement('div');
+      div.className = 'item-block';
+      div.style.cssText = 'background: #f9f9f9; padding: 12px; border-radius: 8px; border: 1px dashed #b0bec5; margin-bottom: 10px; position: relative;';
+      div.innerHTML = `
+        <button type="button" onclick="this.parentElement.remove(); calcRecordTotal();" style="position: absolute; right: 8px; top: 8px; background: none; border: none; color: #c62828; font-size: 16px; cursor: pointer; font-weight: bold;">❌</button>
+        <label style="margin-top:0;">📦 品項名稱：</label>
+        <input type="text" class="item-name" placeholder="如: 黑牛牌肥料">
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+          <div style="flex: 1.5;">
+            <label style="margin-top:0;">🔢 數量：</label>
+            <input type="number" class="item-qty" value="1" oninput="calcRecordTotal()">
+          </div>
+          <div style="flex: 1.5;">
+            <label style="margin-top:0;">📦 單位：</label>
+            <select class="item-unit">
+              <option value="斤">斤</option>
+              <option value="公斤">公斤</option>
+              <option value="箱">箱</option>
+              <option value="包">包</option>
+              <option value="瓶">瓶</option>
+              <option value="罐">罐</option>
+              <option value="個">個</option>
+              <option value="件">件</option>
+            </select>
+          </div>
+          <div style="flex: 2;">
+            <label style="margin-top:0;">💵 單價：</label>
+            <input type="number" class="item-price" placeholder="如: 350" oninput="calcRecordTotal()">
+          </div>
+        </div>
+      `;
+      container.appendChild(div);
+    }
+
+    // 🌟 還原成只有一個品項輸入框
+    function resetItemBlocks() {
+      const container = document.getElementById('itemListContainer');
+      container.innerHTML = '';
+      addMoreItem();
+      // 第一個輸入框不需要移除按鈕
+      container.querySelector('button').style.display = 'none';
+      calcRecordTotal();
+    }
 
     function onRecordTypeChange() {
       const type = document.getElementById('recordType').value;
@@ -308,7 +343,6 @@
           partnerSelect.innerHTML = '<option value="">-- 請選擇客戶 (可不選) --</option>';
           partnerListCache.forEach(p => partnerSelect.innerHTML += `<option value="${p.name}">${p.name}</option>`);
 
-          // 🌟 廠商對帳下拉選單：結合「廠商」與「工人」
           const queryPartnerSelect = document.getElementById('queryPartnerSelect');
           queryPartnerSelect.innerHTML = '<option value="">-- 請選擇客戶/廠商/工人 --</option>';
           partnerListCache.forEach(p => queryPartnerSelect.innerHTML += `<option value="${p.name}">🏢 廠商 - ${p.name}</option>`);
@@ -316,7 +350,7 @@
 
           if (document.getElementById('tab3').style.display !== 'none') queryPartnerData();
           if (document.getElementById('tab4').style.display !== 'none') queryMonthlyReport();
-        }).catch(err => alert("⚠️ 連線或讀取失敗，請確認 GAS 網址與網路連線。"));
+        }).catch(err => console.error(err));
     }
 
     function switchTab(tabId) {
@@ -328,10 +362,15 @@
       if (tabId === 'tab4') queryMonthlyReport();
     }
 
+    // 🌟 計算所有品項的總額
     function calcRecordTotal() {
-      const price = parseFloat(document.getElementById('recordPrice').value) || 0;
-      const qty = parseFloat(document.getElementById('recordQty').value) || 0;
-      document.getElementById('showRecordTotal').innerText = (price * qty).toLocaleString();
+      let total = 0;
+      document.querySelectorAll('.item-block').forEach(block => {
+        const p = parseFloat(block.querySelector('.item-price').value) || 0;
+        const q = parseFloat(block.querySelector('.item-qty').value) || 0;
+        total += (p * q);
+      });
+      document.getElementById('showRecordTotal').innerText = total.toLocaleString();
     }
 
     function onWorkerChange() {
@@ -346,7 +385,6 @@
       document.getElementById('showDailyWage').innerText = (hours * wage).toLocaleString();
     }
 
-    // 🌟 廠商對帳邏輯：自動判斷是廠商交易還是工人工資
     function queryPartnerData() {
       const targetPartner = document.getElementById('queryPartnerSelect').value;
       const targetField = document.getElementById('queryPartnerField').value;
@@ -369,7 +407,6 @@
 
       let incomeSum = 0, expenseSum = 0, html = '';
 
-      // 處理收支紀錄
       filteredRecords.forEach(r => {
         const amt = parseFloat(r.totalAmount) || (parseFloat(r.price) * parseFloat(r.qty)) || 0;
         const rDate = normalizeDate(r.date);
@@ -381,7 +418,6 @@
             <div style="font-size:12px; color:#777;">📅 ${rDate} | 🌱 ${r.field}</div>
             <div style="font-weight:bold; font-size:15px; margin:2px 0;">${r.category} - ${r.itemName || '果實銷售'} (${r.qty} ${r.unit} × $${r.price})</div>
             <div style="color:#2e7d32; font-weight:bold;">🟢 收入：+$${amt.toLocaleString()} 元</div>
-            ${r.note ? `<div style="font-size:12px; color:#555;">備註：${r.note}</div>` : ''}
           </div>`;
         } else {
           expenseSum += amt;
@@ -389,12 +425,10 @@
             <div style="font-size:12px; color:#777;">📅 ${rDate} | 🌱 ${r.field}</div>
             <div style="font-weight:bold; font-size:15px; margin:2px 0;">${r.category} - ${r.itemName || '一般資材'} (${r.qty} ${r.unit} × $${r.price})</div>
             <div style="color:#c62828; font-weight:bold;">🔴 支出：-$${amt.toLocaleString()} 元</div>
-            ${r.note ? `<div style="font-size:12px; color:#555;">備註：${r.note}</div>` : ''}
           </div>`;
         }
       });
 
-      // 處理工時紀錄 (算入支出)
       filteredWorkLogs.forEach(w => {
         const amt = parseFloat(w.dailyWage) || (parseFloat(w.hours) * parseFloat(w.hourlyWage)) || 0;
         const wDate = normalizeDate(w.date);
@@ -419,7 +453,6 @@
       listDiv.innerHTML = (filteredRecords.length > 0 || filteredWorkLogs.length > 0) ? html : '<p style="text-align:center; color:#888;">該對象尚無交易或點工紀錄</p>';
     }
 
-    // 🔥 確保統計報表內部完全套用 YYYY-MM-DD 比對
     function queryMonthlyReport() {
       const startStr = document.getElementById('reportStartDate').value;
       const endStr = document.getElementById('reportEndDate').value;
@@ -431,7 +464,6 @@
       allRecordsCache.forEach(r => {
         const rDate = normalizeDate(r.date);
         const rType = String(r.type).trim();
-        // 直接文字比較 YYYY-MM-DD
         if (rDate >= startStr && rDate <= endStr) {
           if (!targetField || String(r.field).trim() === String(targetField).trim()) {
             const amt = parseFloat(r.totalAmount) || (parseFloat(r.price) * parseFloat(r.qty)) || 0;
@@ -543,21 +575,59 @@
       });
     }
 
+    // 🌟 將畫面上的所有品項收集成陣列送出
     function submitRecord() {
-      const date = document.getElementById('recordDate').value, price = document.getElementById('recordPrice').value, qty = document.getElementById('recordQty').value;
-      if (!date || !price) return alert('請填寫日期與單價！');
+      const date = document.getElementById('recordDate').value;
+      const type = document.getElementById('recordType').value;
+      const partner = document.getElementById('recordPartner').value;
+      const category = document.getElementById('recordCategory').value;
+      const field = document.getElementById('recordField').value;
+      const note = document.getElementById('recordNote').value.trim();
+
+      if (!date) return alert('請填寫交易日期！');
+
+      const items = [];
+      let hasError = false;
+
+      // 收集每個輸入框的資料
+      document.querySelectorAll('.item-block').forEach(block => {
+        const itemName = block.querySelector('.item-name').value.trim();
+        const qty = parseFloat(block.querySelector('.item-qty').value) || 0;
+        const unit = block.querySelector('.item-unit').value;
+        const price = parseFloat(block.querySelector('.item-price').value) || 0;
+
+        if (price === 0 && qty > 0) hasError = true;
+        
+        items.push({ itemName, qty, unit, price });
+      });
+
+      if (hasError) return alert('⚠️ 請確保每個品項都有填寫單價！');
+      if (items.length === 0) return alert('⚠️ 至少需要一個品項喔！');
+
+      const btn = document.getElementById('submitBtn');
+      btn.innerText = '⏳ 資料寫入中...';
+      btn.disabled = true;
+
       fetch(GAS_API_URL, {
         method: 'POST',
         body: JSON.stringify({
-          action: 'addRecord', date: date, type: document.getElementById('recordType').value,
-          partner: document.getElementById('recordPartner').value, category: document.getElementById('recordCategory').value,
-          itemName: document.getElementById('recordItemName').value.trim(), qty: qty, unit: document.getElementById('recordUnit').value,
-          price: price, field: document.getElementById('recordField').value, note: document.getElementById('recordNote').value.trim()
+          action: 'addRecord', 
+          date: date, 
+          type: type,
+          partner: partner, 
+          category: category,
+          field: field, 
+          note: note,
+          items: items // 傳送整個品項清單
         })
-      }).then(() => {
-        alert('🎉 記帳成功！總金額：$' + (price * qty) + ' 元');
-        document.getElementById('recordPrice').value = ''; document.getElementById('recordItemName').value = ''; document.getElementById('recordNote').value = '';
-        calcRecordTotal(); loadInitData();
+      }).then(res => res.json()).then(data => {
+        alert('🎉 記帳成功！總金額：$' + data.totalAmount + ' 元');
+        resetItemBlocks(); // 還原輸入框
+        document.getElementById('recordNote').value = '';
+        loadInitData();
+      }).finally(() => {
+        btn.innerText = '🚀 送出整批記帳';
+        btn.disabled = false;
       });
     }
 
