@@ -127,6 +127,7 @@
       <div>累積紀錄筆數：<span id="partnerTotalCount">0</span> 筆</div>
       <div style="margin-top: 6px; font-weight: bold;">🟢 收入總計：<span style="color:#2e7d32;">+$<span id="partnerIncomeSum">0</span></span> 元</div>
       <div style="margin-top: 4px; font-weight: bold;">🔴 支出總計：<span style="color:#c62828;">-$<span id="partnerExpenseSum">0</span></span> 元</div>
+      <div style="margin-top: 4px; font-weight: bold; color: #e65100;">📦 果實採收出貨量：<span id="partnerFruitWeight">0 斤</span></div>
       <hr style="border:none; border-top:1px dashed #ccc; margin:8px 0;">
       <div style="font-size:18px; font-weight:bold;">淨額總計：<span id="partnerNetTotal">$0</span> 元</div>
     </div>
@@ -150,6 +151,7 @@
     </div>
     <label>🌱 篩選工作田區 (可不選)：</label>
     <select id="reportFieldSelect" onchange="queryMonthlyReport()"><option value="">-- 所有田區 --</option></select>
+    
     <div id="monthlySummaryBox" style="background: #f9f9f9; padding: 12px; border-radius: 8px; margin-top: 14px; border: 1px solid #e0e0e0;">
       <div style="color: #2e7d32; font-weight: bold;">🟢 期間總收入：$<span id="monthIncome">0</span> 元</div>
       <div style="color: #c62828; font-weight: bold; margin-top:4px;">🔴 期間資材支出：$<span id="monthExpense">0</span> 元</div>
@@ -157,6 +159,13 @@
       <hr style="border:none; border-top:1px dashed #ccc; margin:8px 0;">
       <div style="font-size:18px; font-weight:bold; color: #1b5e20;">💵 期間預估淨利：$<span id="monthNetProfit">0</span> 元</div>
     </div>
+
+    <!-- 🌟 新增：各客戶果實銷售統計區塊 -->
+    <div id="customerFruitSummaryBox" style="background: #fff3e0; padding: 12px; border-radius: 8px; margin-top: 14px; border: 1px solid #ffcc80;">
+      <div style="color: #e65100; font-weight: bold; margin-bottom: 6px;">📦 各客戶果實銷售統計 (此區間)：</div>
+      <div id="customerFruitList" style="font-size: 15px; color: #424242; line-height: 1.5;"></div>
+    </div>
+
     <div style="margin-top: 18px;">
       <label style="margin-top:0; margin-bottom: 8px;">🔍 查看該區間明細：</label>
       <div style="display: flex; gap: 6px; overflow-x: auto;">
@@ -211,7 +220,6 @@
   </div>
 
   <script>
-    // ⚠️ 請保留您的 GAS_API_URL！
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyd8t8QgF37UptoL06_sEY9CmJc5CbrynrWimh2Oa9RKklu9gf44xtXVvSIi_C5C12KTQ/exec";
 
     let workerListCache = [], partnerListCache = [], fieldListCache = [];
@@ -247,13 +255,11 @@
       document.getElementById('reportStartDate').value = firstDayOfMonth;
       document.getElementById('reportEndDate').value = today;
 
-      // 載入初始的一個輸入框
       resetItemBlocks();
       onRecordTypeChange();
       loadInitData();
     };
 
-    // 🌟 動態新增品項輸入框
     function addMoreItem() {
       const container = document.getElementById('itemListContainer');
       const div = document.createElement('div');
@@ -290,12 +296,10 @@
       container.appendChild(div);
     }
 
-    // 🌟 還原成只有一個品項輸入框
     function resetItemBlocks() {
       const container = document.getElementById('itemListContainer');
       container.innerHTML = '';
       addMoreItem();
-      // 第一個輸入框不需要移除按鈕
       container.querySelector('button').style.display = 'none';
       calcRecordTotal();
     }
@@ -350,7 +354,7 @@
 
           if (document.getElementById('tab3').style.display !== 'none') queryPartnerData();
           if (document.getElementById('tab4').style.display !== 'none') queryMonthlyReport();
-        }).catch(err => console.error(err));
+        }).catch(err => alert("⚠️ 連線或讀取失敗，請確認 GAS 網址與網路連線。"));
     }
 
     function switchTab(tabId) {
@@ -362,7 +366,6 @@
       if (tabId === 'tab4') queryMonthlyReport();
     }
 
-    // 🌟 計算所有品項的總額
     function calcRecordTotal() {
       let total = 0;
       document.querySelectorAll('.item-block').forEach(block => {
@@ -385,6 +388,7 @@
       document.getElementById('showDailyWage').innerText = (hours * wage).toLocaleString();
     }
 
+    // 🌟 計算對單一廠商的果實總重量
     function queryPartnerData() {
       const targetPartner = document.getElementById('queryPartnerSelect').value;
       const targetField = document.getElementById('queryPartnerField').value;
@@ -406,6 +410,7 @@
       }
 
       let incomeSum = 0, expenseSum = 0, html = '';
+      let fruitQty = {}; // 追蹤果實數量
 
       filteredRecords.forEach(r => {
         const amt = parseFloat(r.totalAmount) || (parseFloat(r.price) * parseFloat(r.qty)) || 0;
@@ -414,6 +419,12 @@
         
         if (rType === '收入') {
           incomeSum += amt;
+          // 加總果實重量
+          if (r.category === '果實銷售') {
+            let u = String(r.unit).trim() || '斤';
+            fruitQty[u] = (fruitQty[u] || 0) + (parseFloat(r.qty) || 0);
+          }
+
           html += `<div class="list-item-card">
             <div style="font-size:12px; color:#777;">📅 ${rDate} | 🌱 ${r.field}</div>
             <div style="font-weight:bold; font-size:15px; margin:2px 0;">${r.category} - ${r.itemName || '果實銷售'} (${r.qty} ${r.unit} × $${r.price})</div>
@@ -445,6 +456,10 @@
       document.getElementById('partnerIncomeSum').innerText = incomeSum.toLocaleString();
       document.getElementById('partnerExpenseSum').innerText = expenseSum.toLocaleString();
       
+      // 顯示果實總量
+      let fruitQtyStr = Object.entries(fruitQty).map(([u, q]) => `${q} ${u}`).join(' / ');
+      document.getElementById('partnerFruitWeight').innerText = fruitQtyStr || '0 斤';
+
       const netElem = document.getElementById('partnerNetTotal');
       if (netTotal >= 0) { netElem.style.color = '#2e7d32'; netElem.innerText = '+$' + netTotal.toLocaleString(); } 
       else { netElem.style.color = '#c62828'; netElem.innerText = '-$' + Math.abs(netTotal).toLocaleString(); }
@@ -453,6 +468,7 @@
       listDiv.innerHTML = (filteredRecords.length > 0 || filteredWorkLogs.length > 0) ? html : '<p style="text-align:center; color:#888;">該對象尚無交易或點工紀錄</p>';
     }
 
+    // 🌟 計算所有客戶果實重量排行
     function queryMonthlyReport() {
       const startStr = document.getElementById('reportStartDate').value;
       const endStr = document.getElementById('reportEndDate').value;
@@ -460,6 +476,8 @@
       if (!startStr || !endStr) return;
 
       let incomeSum = 0, expenseSum = 0, wageSum = 0;
+      let customerFruitQty = {}; 
+      let totalFruitQty = {};
 
       allRecordsCache.forEach(r => {
         const rDate = normalizeDate(r.date);
@@ -467,8 +485,22 @@
         if (rDate >= startStr && rDate <= endStr) {
           if (!targetField || String(r.field).trim() === String(targetField).trim()) {
             const amt = parseFloat(r.totalAmount) || (parseFloat(r.price) * parseFloat(r.qty)) || 0;
-            if (rType === '收入') incomeSum += amt;
-            else if (rType === '支出') expenseSum += amt;
+            if (rType === '收入') {
+              incomeSum += amt;
+              // 分類計算各客戶拿的斤數
+              if (r.category === '果實銷售') {
+                let p = String(r.partner).trim() || '未指定客戶';
+                let u = String(r.unit).trim() || '斤';
+                let q = parseFloat(r.qty) || 0;
+                
+                if (!customerFruitQty[p]) customerFruitQty[p] = {};
+                customerFruitQty[p][u] = (customerFruitQty[p][u] || 0) + q;
+                totalFruitQty[u] = (totalFruitQty[u] || 0) + q;
+              }
+            }
+            else if (rType === '支出') {
+              expenseSum += amt;
+            }
           }
         }
       });
@@ -490,6 +522,19 @@
       const netElem = document.getElementById('monthNetProfit');
       netElem.innerText = (netProfit >= 0 ? '+$' : '-$') + Math.abs(netProfit).toLocaleString();
       netElem.style.color = netProfit >= 0 ? '#1b5e20' : '#c62828';
+
+      // 產生各客戶果實統計畫面
+      let fruitHtml = '';
+      for (const [partner, units] of Object.entries(customerFruitQty)) {
+        let unitStr = Object.entries(units).map(([u, q]) => `${q} ${u}`).join(' / ');
+        fruitHtml += `<div style="padding: 6px 0; border-bottom: 1px dashed #ffcc80;">🏬 <b>${partner}</b>：${unitStr}</div>`;
+      }
+      if (!fruitHtml) fruitHtml = '<div style="color:#888;">此區間無果實銷售紀錄</div>';
+      
+      let totalFruitStr = Object.entries(totalFruitQty).map(([u, q]) => `${q} ${u}`).join(' / ');
+      if (totalFruitStr) fruitHtml += `<div style="padding-top: 8px; font-weight: bold; color: #d84315;">📈 總計出貨：${totalFruitStr}</div>`;
+      
+      document.getElementById('customerFruitList').innerHTML = fruitHtml;
 
       filterReportDetails(currentDetailFilter);
     }
@@ -575,7 +620,6 @@
       });
     }
 
-    // 🌟 將畫面上的所有品項收集成陣列送出
     function submitRecord() {
       const date = document.getElementById('recordDate').value;
       const type = document.getElementById('recordType').value;
@@ -589,13 +633,13 @@
       const items = [];
       let hasError = false;
 
-      // 收集每個輸入框的資料
       document.querySelectorAll('.item-block').forEach(block => {
         const itemName = block.querySelector('.item-name').value.trim();
         const qty = parseFloat(block.querySelector('.item-qty').value) || 0;
         const unit = block.querySelector('.item-unit').value;
         const price = parseFloat(block.querySelector('.item-price').value) || 0;
-
+        
+        // 防呆：有數量沒單價，或是全空
         if (price === 0 && qty > 0) hasError = true;
         
         items.push({ itemName, qty, unit, price });
@@ -618,11 +662,11 @@
           category: category,
           field: field, 
           note: note,
-          items: items // 傳送整個品項清單
+          items: items
         })
       }).then(res => res.json()).then(data => {
         alert('🎉 記帳成功！總金額：$' + data.totalAmount + ' 元');
-        resetItemBlocks(); // 還原輸入框
+        resetItemBlocks();
         document.getElementById('recordNote').value = '';
         loadInitData();
       }).finally(() => {
