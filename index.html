@@ -349,7 +349,7 @@
 
           const queryPartnerSelect = document.getElementById('queryPartnerSelect');
           queryPartnerSelect.innerHTML = '<option value="">-- 請選擇客戶/廠商/工人 --</option>';
-          partnerListCache.forEach(p => queryPartnerSelect.innerHTML += `<option value="${p.name}">🏢 廠商 - ${p.name}</option>`);
+          partnerListCache.forEach(p => queryPartnerSelect.innerHTML += `<option value="${p.name}">🏬 客戶 - ${p.name}</option>`);
           workerListCache.forEach(w => queryPartnerSelect.innerHTML += `<option value="${w.name}">👷 工人 - ${w.name}</option>`);
 
           if (document.getElementById('tab3').style.display !== 'none') queryPartnerData();
